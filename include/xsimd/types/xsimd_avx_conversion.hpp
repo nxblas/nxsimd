@@ -135,6 +135,18 @@ namespace xsimd
     }
 
     template <>
+    inline batch<int64_t, 4> bitwise_cast(const batch<int32_t, 8>& x)
+    {
+        return __m256i(x);
+    }
+
+    template <>
+    inline batch<int32_t, 8> bitwise_cast(const batch<int64_t, 4>& x)
+    {
+        return __m256i(x);
+    }
+
+    template <>
     inline batch<float, 8> bitwise_cast(const batch<double, 4>& x)
     {
         return _mm256_castpd_ps(x);
@@ -153,6 +165,12 @@ namespace xsimd
     }
 
     template <>
+    inline batch<double, 4> bitwise_cast(const batch<double, 4>& x)
+    {
+        return x;
+    }
+
+    template <>
     inline batch<float, 8> bitwise_cast(const batch<int32_t, 8>& x)
     {
         return _mm256_castsi256_ps(x);
@@ -168,6 +186,12 @@ namespace xsimd
     inline batch<float, 8> bitwise_cast(const batch<int64_t, 4>& x)
     {
         return _mm256_castsi256_ps(x);
+    }
+
+    template <>
+    inline batch<int64_t, 4> bitwise_cast(const batch<int64_t, 4>& x)
+    {
+        return x;
     }
 
     template <>
