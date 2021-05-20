@@ -165,6 +165,7 @@ set(XSIMD_TESTS
     test_hyperbolic.cpp
     test_load_store.cpp
     test_memory.cpp
+    test_numerical_constant.cpp
     test_poly_evaluation.cpp
     test_power.cpp
     test_rounding.cpp
