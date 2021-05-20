@@ -13,7 +13,7 @@
 
 #include "test_utils.hpp"
 
-#if XSIMD_INSTR_SET != XSIMD_VERSION_NUMBER_NOT_AVAILABLE
+#if XSIMD_INSTR_SET != XSIMD_VERSION_NUMBER_NOT_AVAILABLE || XSIMD_ENABLE_FALLBACK
 
 static_assert(xsimd::arch::default_::supported, "default arch must be supported");
 static_assert(xsimd::arch::supported::contains<xsimd::arch::default_>(), "default arch is supported");
@@ -83,7 +83,7 @@ TEST(arch, dispatcher)
 #endif
 }
 
-#ifdef XSIMD_ENABLE_FALLBACK
+#if XSIMD_ENABLE_FALLBACK
 // FIXME: this should be different from fallback
 TEST(arch, scalar)
 {
