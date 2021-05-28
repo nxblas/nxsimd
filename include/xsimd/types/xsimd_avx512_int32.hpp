@@ -268,6 +268,33 @@ namespace xsimd
                 return _mm512_unpackhi_epi32(lhs, rhs);
             }
 
+            static batch_type extract_pair(const batch_type& v_lhs, const batch_type& v_rhs, const int n)
+            {
+#if XSIMD_X86_INSTR_SET >= XSIMD_X86_AVX512_VERSION
+                const batch_type lhs = v_rhs;
+                const batch_type rhs = v_lhs;
+
+                switch(n)
+                {
+                    case 0: return rhs;
+                    XSIMD_REPEAT_16_v2(_mm512_alignr_epi32);
+                    default: break;
+                }
+                return batch_type(T(0));
+#else
+                batch_type b_concatenate;
+                for (int i = 0 ; i < (16 - n); ++i)
+                {
+                    b_concatenate[i] = v_lhs[i + n];
+                    if(i < n)
+                    {
+                        b_concatenate[16 - 1 - i] = v_rhs[n - 1 - i];
+                    }
+                }
+                return b_concatenate;
+#endif
+            }
+
         };
 
         template <>

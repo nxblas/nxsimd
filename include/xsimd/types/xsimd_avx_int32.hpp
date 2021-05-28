@@ -357,6 +357,47 @@ namespace xsimd
                 return _mm256_unpackhi_epi32(lhs, rhs);
             }
 
+            static batch_type extract_pair(const batch_type& v_lhs, const batch_type& v_rhs, const int num)
+            {
+#if defined(XSIMD_AVX512VL_AVAILABLE)
+                const batch_type lhs = v_rhs;
+                const batch_type rhs = v_lhs;
+                const int n = num;
+                switch(n)
+                {
+                    case 0: return rhs;
+                    XSIMD_REPEAT_8_v2(_mm256_alignr_epi32);
+                    default: break;
+                }
+                return batch_type(int32_t(0));
+#else
+#if XSIMD_X86_INSTR_SET >= XSIMD_X86_AVX2_VERSION
+                const batch_type lhs = v_rhs;
+                const batch_type rhs = v_lhs;
+                const int n = 4 * num;
+                switch(n)
+                {
+                    case 0: return rhs;
+                    XSIMD_REPEAT_32_v2(_mm256_alignr_epi8);
+                    default: break;
+                }
+                return batch_type(int32_t(0));
+#else
+                batch_type b_concatenate;
+                const int n = num;
+                for (int i = 0 ; i < (8 - n); ++i)
+                {
+                    b_concatenate[i] = v_lhs[i + n];
+                    if(i < n)
+                    {
+                        b_concatenate[8 - 1 - i] = v_rhs[n - 1 - i];
+                    }
+                }
+                return b_concatenate;
+#endif
+#endif
+            }
+
         };
 
         template <>
@@ -545,6 +586,47 @@ namespace xsimd
             static batch_type zip_hi(const batch_type& lhs, const batch_type& rhs)
             {
                 return _mm256_unpackhi_epi32(lhs, rhs);
+            }
+
+            static batch_type extract_pair(const batch_type& v_lhs, const batch_type& v_rhs, const int num)
+            {
+#if defined(XSIMD_AVX512VL_AVAILABLE)
+                const batch_type lhs = v_rhs;
+                const batch_type rhs = v_lhs;
+                const int n = num;
+                switch(n)
+                {
+                    case 0: return rhs;
+                    XSIMD_REPEAT_8_v2(_mm256_alignr_epi32);
+                    default: break;
+                }
+                return batch_type(uint32_t(0));
+#else
+#if XSIMD_X86_INSTR_SET >= XSIMD_X86_AVX2_VERSION
+                const batch_type lhs = v_rhs;
+                const batch_type rhs = v_lhs;
+                const int n = 4 * num;
+                switch(n)
+                {
+                    case 0: return rhs;
+                    XSIMD_REPEAT_32_v2(_mm256_alignr_epi8);
+                    default: break;
+                }
+                return batch_type(uint32_t(0));
+#else
+                batch_type b_concatenate;
+                const int n = num;
+                for (int i = 0 ; i < (8 - n); ++i)
+                {
+                    b_concatenate[i] = v_lhs[i + n];
+                    if(i < n)
+                    {
+                        b_concatenate[8 - 1 - i] = v_rhs[n - 1 - i];
+                    }
+                }
+                return b_concatenate;
+#endif
+#endif
             }
 
         };

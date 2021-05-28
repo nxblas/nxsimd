@@ -615,6 +615,20 @@ namespace xsimd
                 return _mm512_unpackhi_ps(lhs, rhs);
             }
 
+            static batch_type extract_pair(const batch_type& lhs, const batch_type& rhs, const int n)
+            {
+                batch_type b_concatenate;
+                for (int i = 0 ; i < (16 - n); ++i)
+                {
+                    b_concatenate[i] = lhs[i + n];
+                    if(i < n)
+                    {
+                        b_concatenate[16 - 1 - i] = rhs[n - 1 - i];
+                    }
+                }
+                return b_concatenate;
+            }
+
             static batch_bool_type isnan(const batch_type& x)
             {
                 return _mm512_cmp_ps_mask(x, x, _CMP_UNORD_Q);

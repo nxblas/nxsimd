@@ -160,6 +160,7 @@ set(XSIMD_TESTS
     test_conversion.cpp
     test_error_gamma.cpp
     test_exponential.cpp
+    test_extract_pair.cpp
     test_fp_manipulation.cpp
     test_hyperbolic.cpp
     test_load_store.cpp

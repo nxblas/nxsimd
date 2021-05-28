@@ -13,53 +13,6 @@
 
 #include "xsimd_base.hpp"
 
-#define EXPAND(...) __VA_ARGS__
-
-#define CASE(op, i)                   \
-    case i: return op(lhs, i);
-
-#define XSIMD_REPEAT_8_0(op, addx)    \
-    CASE(EXPAND(op), 1 + addx);       \
-    CASE(EXPAND(op), 2 + addx);       \
-    CASE(EXPAND(op), 3 + addx);       \
-    CASE(EXPAND(op), 4 + addx);       \
-    CASE(EXPAND(op), 5 + addx);       \
-    CASE(EXPAND(op), 6 + addx);       \
-    CASE(EXPAND(op), 7 + addx);
-
-#define XSIMD_REPEAT_8_N(op, addx)    \
-    CASE(EXPAND(op), 0 + addx);       \
-    XSIMD_REPEAT_8_0(op, addx);
-
-#define XSIMD_REPEAT_8(op)            \
-    XSIMD_REPEAT_8_0(op, 0);
-
-#define XSIMD_REPEAT_16_0(op, addx)   \
-    XSIMD_REPEAT_8_0(op, 0 + addx);   \
-    XSIMD_REPEAT_8_N(op, 8 + addx);
-
-#define XSIMD_REPEAT_16_N(op, addx)   \
-    XSIMD_REPEAT_8_N(op, 0 + addx);   \
-    XSIMD_REPEAT_8_N(op, 8 + addx);
-
-#define XSIMD_REPEAT_16(op)           \
-    XSIMD_REPEAT_16_0(op, 0);
-
-#define XSIMD_REPEAT_32_0(op, addx)   \
-    XSIMD_REPEAT_16_0(op, 0 + addx);  \
-    XSIMD_REPEAT_16_N(op, 16 + addx);
-
-#define XSIMD_REPEAT_32_N(op, addx)   \
-    XSIMD_REPEAT_16_N(op, 0 + addx);  \
-    XSIMD_REPEAT_16_N(op, 16 + addx);
-
-#define XSIMD_REPEAT_32(op)           \
-    XSIMD_REPEAT_32_0(op, 0);
-
-#define XSIMD_REPEAT_64(op)           \
-    XSIMD_REPEAT_32_0(op, 0);         \
-    XSIMD_REPEAT_32_N(op, 32);
-
 namespace xsimd
 {
     /********************
