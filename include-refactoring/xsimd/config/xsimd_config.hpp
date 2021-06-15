@@ -83,4 +83,24 @@
 #define XSIMD_WITH_AVX512F 0
 #endif
 
+#ifdef __ARM_NEON
+    #if __ARM_ARCH >= 7
+        #define XSIMD_WITH_ARM7 1
+    #else
+        #define XSIMD_WITH_ARM7 0
+    #endif
+
+    #if __ARM_ARCH >= 8
+        #ifdef __aarch64__
+            #define XSIMD_WITH_ARM8_64 1
+            #define XSIMD_WITH_ARM8_32 1
+        #else
+            #define XSIMD_WITH_ARM8_64 0
+            #define XSIMD_WITH_ARM8_32 1
+    #else
+        #define XSIMD_WITH_ARM8_64 0
+        #define XSIMD_WITH_ARM8_32 0
+    #endif
+#endif
+
 #endif
