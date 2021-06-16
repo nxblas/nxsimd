@@ -1,0 +1,36 @@
+jobs:
+  - job: 'Linux_1'
+    strategy:
+      matrix:
+        gcc_4_aarch64:
+          cross_compile: 1
+          gcc_version: '4.9'
+          arm_arch_dir: 'aarch64-linux-gnu'
+          arm_arch_target: 'armv8-a'
+          refactoring: 1
+    pool:
+      vmImage: ubuntu-16.04
+    variables:
+      CC: gcc-$(gcc_version)
+      CXX: g++-$(gcc_version)
+    timeoutInMinutes: 30
+    steps:
+
+      - script: |
+          if [[ $(gcc_version) == '4.9' || $(gcc_version) == '6' || $(gcc_version) == '7' || $(gcc_version) == '8' ]]; then
+            sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+            sudo apt-get update
+            sudo apt-get --no-install-suggests --no-install-recommends install g++-$(gcc_version)
+          fi
+          if [[ $(cross_compile) == 1 ]]; then
+            if [[ $(arm_arch_dir) == 'aarch64-linux-gnu' ]]; then
+              sudo apt-get --no-install-suggests --no-install-recommends install g++-4.9-aarch64-linux-gnu gcc-4.9-aarch64-linux-gnu
+              sudo apt-get --no-install-suggests --no-install-recommends install qemu qemu-system-aarch64
+            fi
+          fi
+        displayName: Install build toolchain
+
+      - bash: echo "##vso[task.prependpath]$CONDA/bin"
+        displayName: Add conda to PATH
+
+      - template: unix-build.yml
