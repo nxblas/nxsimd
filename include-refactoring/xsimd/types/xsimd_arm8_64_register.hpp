@@ -19,7 +19,7 @@ namespace xsimd
     namespace types
     {
         XSIMD_DECLARE_SIMD_REGISTER_ALIAS(arm8_64, arm8_32);
-        XSIMD_DECALRE_SIMD_REGISTER(double, arm8_64, float64x2_t);
+        XSIMD_DECLARE_SIMD_REGISTER(double, arm8_64, float64x2_t);
     }
 
 #endif

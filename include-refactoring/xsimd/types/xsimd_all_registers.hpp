@@ -10,3 +10,8 @@
 #include "../types/xsimd_fma5_register.hpp"
 
 #include "../types/xsimd_avx512f_register.hpp"
+
+#include "xsimd_arm7_register.hpp"
+#include "xsimd_arm8_32_register.hpp"
+#include "xsimd_arm8_64_register.hpp"
+
