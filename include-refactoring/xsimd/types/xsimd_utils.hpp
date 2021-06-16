@@ -230,6 +230,32 @@ namespace xsimd
         #endif
     }
 
+    /***********************************
+     * Backport of std::get from C++14 *
+     ***********************************/
+
+    namespace detail
+    {
+        template <class T, class... Types, size_t I, size_t... Is>
+        const T& get_impl(const std::tuple<Types...>& t, std::is_same<T, T>, index_sequence<I, Is...>)
+        {
+            return std::get<I>(t);
+        }
+
+        template <class T, class U, class... Types, size_t I, size_t... Is>
+        const T& get_impl(const std::tuple<Types...>& t, std::is_same<T, U>, index_sequence<I, Is...>)
+        {
+            using tuple_elem = typename std::tuple_element<I+1, std::tuple<Types...>>::type;
+            return get_impl<T>(t, std::is_same<T, tuple_elem>(), index_sequence<Is...>());
+        }
+
+        template <class T, class... Types>
+        const T& get(const std::tuple<Types...>& t)
+        {
+            using tuple_elem = typename std::tuple_element<0, std::tuple<Types...>>::type;
+            return get_impl<T>(t, std::is_same<T, tuple_elem>(), make_index_sequence<sizeof...(Types)>());
+        }
+    }
 
     /*****************************************
      * Supplementary std::array constructors *
@@ -240,7 +266,8 @@ namespace xsimd
         // std::array constructor from scalar value ("broadcast")
         template <typename T, std::size_t... Is>
         constexpr std::array<T, sizeof...(Is)>
-        array_from_scalar_impl(const T& scalar, index_sequence<Is...>) {
+        array_from_scalar_impl(const T& scalar, index_sequence<Is...>)
+        {
             // You can safely ignore this silly ternary, the "scalar" is all
             // that matters. The rest is just a dirty workaround...
             return std::array<T, sizeof...(Is)>{ (Is+1) ? scalar : T() ... };
@@ -248,20 +275,23 @@ namespace xsimd
 
         template <typename T, std::size_t N>
         constexpr std::array<T, N>
-        array_from_scalar(const T& scalar) {
+        array_from_scalar(const T& scalar)
+        {
             return array_from_scalar_impl(scalar, make_index_sequence<N>());
         }
 
         // std::array constructor from C-style pointer (handled as an array)
         template <typename T, std::size_t... Is>
         constexpr std::array<T, sizeof...(Is)>
-        array_from_pointer_impl(const T* c_array, index_sequence<Is...>) {
+        array_from_pointer_impl(const T* c_array, index_sequence<Is...>)
+        {
             return std::array<T, sizeof...(Is)>{ c_array[Is]... };
         }
 
         template <typename T, std::size_t N>
         constexpr std::array<T, N>
-        array_from_pointer(const T* c_array) {
+        array_from_pointer(const T* c_array)
+        {
             return array_from_pointer_impl(c_array, make_index_sequence<N>());
         }
     }

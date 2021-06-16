@@ -97,6 +97,7 @@
         #else
             #define XSIMD_WITH_ARM8_64 0
             #define XSIMD_WITH_ARM8_32 1
+        #endif
     #else
         #define XSIMD_WITH_ARM8_64 0
         #define XSIMD_WITH_ARM8_32 0
