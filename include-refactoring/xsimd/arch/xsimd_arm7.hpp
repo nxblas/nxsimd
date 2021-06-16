@@ -38,6 +38,7 @@ namespace xsimd
         template <class T, class A, class = typename std::enable_if<std::is_integral<T>::value, void>::type>
         batch<T, A> add(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
+            std::cout << "coincoin" << std::endl;
             using register_type = typename batch<T, A>::register_type;
             constexpr detail::arm_dispatcher_type dispatcher =
             {

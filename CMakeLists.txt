@@ -76,7 +76,6 @@ ${XSIMD_INCLUDE_DIR}/xsimd/types/xsimd_ssse3_register.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/types/xsimd_utils.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/xsimd.hpp
 )
-
 else()
 set(XSIMD_HEADERS
     ${XSIMD_INCLUDE_DIR}/xsimd/xsimd.hpp
