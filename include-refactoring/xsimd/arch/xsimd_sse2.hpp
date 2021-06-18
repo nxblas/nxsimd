@@ -147,12 +147,12 @@ namespace xsimd {
     }
 
     // convert
-    namespace conversion {
-    template<class A> batch<float, A> fast(batch<int32_t, A> const& self, batch<float, A> const&, requires<sse2>) {
+    namespace detail {
+    template<class A> batch<float, A> fast_cast(batch<int32_t, A> const& self, batch<float, A> const&, requires<sse2>) {
       return _mm_cvtepi32_ps(self);
     }
-    template<class A> batch<int32_t, A> fast(batch<float, A> const& self, batch<int32_t, A> const&, requires<sse2>) {
-      return _mm_cvtps_epi32(self);
+    template<class A> batch<int32_t, A> fast_cast(batch<float, A> const& self, batch<int32_t, A> const&, requires<sse2>) {
+      return _mm_cvttps_epi32(self);
     }
     }
 

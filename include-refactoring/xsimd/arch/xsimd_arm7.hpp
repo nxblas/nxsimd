@@ -52,10 +52,6 @@ namespace xsimd
         {
             return vaddq_f32(lhs, rhs);
         }
-
-        namespace conversion
-        {
-        }
     }
 }
 
