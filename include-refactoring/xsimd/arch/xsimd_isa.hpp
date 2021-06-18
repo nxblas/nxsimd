@@ -45,6 +45,18 @@
 #include "./xsimd_fma5.hpp"
 #endif
 
+#if XSIMD_WITH_ARM7
+#include "./xsimd_arm7.hpp"
+#endif
+
+#if XSIMD_WITH_ARM8_32
+#include "./xsimd_arm7.hpp"
+#endif
+
+#if XSIMD_WITH_ARM8_64
+#include "./xsimd_arm7.hpp"
+#endif
+
 // Must come last to have access to all conversion specializations.
 #include "./xsimd_generic.hpp"
 
