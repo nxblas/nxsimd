@@ -376,6 +376,23 @@ namespace xsimd
     template <std::size_t N>
     batch_bool<double, N> bool_cast(const batch_bool<int64_t, N>& x);
 
+    /******************************************
+     *  Convert Bytes, Shorts, Words, Doubles *
+     *  to batch functions                    *
+     ******************************************/
+
+    template <int N>
+    void bytes_to_batch_vector(batch<uint8_t, N>& vec, int8_t b_n, ...);
+
+    template <int N>
+    void shorts_to_batch_vector(batch<uint16_t, N>& vec, int16_t s_n, ...);
+
+    template <int N>
+    void words_to_batch_vector(batch<uint32_t, N>& vec, int32_t i_n, ...);
+
+    template <int N>
+    void longs_to_batch_vector(batch<uint64_t, N>& vec, int64_t d_n, ...);
+
     /**************************
      * Boilerplate generators *
      **************************/
@@ -1277,6 +1294,80 @@ namespace xsimd
     inline batch<uint8_t, sizeof(uint64_t)*in_N/sizeof(uint8_t)> u64_to_u8(const batch<uint64_t, in_N>& x)
     {
        return bitwise_cast_impl<batch<uint64_t, in_N>, batch<uint8_t, sizeof(uint64_t)*in_N/sizeof(uint8_t)>>::run(x);
+    }
+
+    /*****************************************
+     * vector cast functions implementation *
+     *****************************************/
+
+    template <int N>
+    inline void bytes_to_batch_vector(batch<uint8_t, N>& vec, int8_t b_n, ...)
+    {
+        uint8_t bytes_buf[N];
+        va_list args;
+
+        va_start(args, b_n);
+        for(int i = 0; i < N; i++)
+        {
+            bytes_buf[N - 1 - i] = static_cast<uint8_t>(va_arg(args, int8_t));
+        }
+        va_end(args);
+
+        vec.load_aligned(bytes_buf);
+    }
+
+    template <int N>
+    inline void shorts_to_batch_vector(batch<uint8_t, 2 * N>& vec, int16_t s_n, ...)
+    {
+        uint16_t shorts_buf[N];
+        va_list args;
+        batch<uint16_t, N> vec_16;
+
+        va_start(args, s_n);
+        for(int i = 0; i < N; i++)
+        {
+            shorts_buf[N - 1 - i] = static_cast<uint16_t>(va_arg(args, int16_t));
+        }
+        va_end(args);
+
+        vec_16.load_aligned(shorts_buf);
+        vec = u16_to_u8(vec_16);
+    }
+
+    template <int N>
+    inline void words_to_batch_vector(batch<uint8_t, 4 * N>& vec, int32_t i_n, ...)
+    {
+        uint32_t words_buf[N];
+        va_list args;
+        batch<uint32_t, N> vec_32;
+
+        va_start(args, i_n);
+        for(int i = 0; i < N; i++)
+        {
+            words_buf[N - 1 - i] = static_cast<uint32_t>(va_arg(args, int32_t));
+        }
+        va_end(args);
+
+        vec_32.load_aligned(words_buf);
+        vec = u32_to_u8(vec_32);
+    }
+
+    template <int N>
+    inline void longs_to_batch_vector(batch<uint8_t, 8 * N>& vec, int64_t l_n, ...)
+    {
+        uint64_t long_buf[N];
+        va_list args;
+        batch<uint64_t, N> vec_64;
+
+        va_start(args, l_n);
+        for(int i = 0; i < N; i++)
+        {
+            long_buf[N - 1 - i] = static_cast<uint64_t>(va_arg(args, int64_t));
+        }
+        va_end(args);
+
+        vec_64.load_aligned(long_buf);
+        vec = u64_to_u8(vec_64);
     }
 
 }

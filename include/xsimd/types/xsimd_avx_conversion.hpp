@@ -46,7 +46,35 @@ namespace xsimd
     batch_bool<int64_t, 4> bool_cast(const batch_bool<double, 4>& x);
     batch_bool<float, 8> bool_cast(const batch_bool<int32_t, 8>& x);
     batch_bool<double, 4> bool_cast(const batch_bool<int64_t, 4>& x);
-    
+
+    /******************************************
+     *  Convert Bytes, Shorts, Words, Doubles *
+     *  to batch functions                    *
+     ******************************************/
+
+    void bytes_to_batch_vector(batch<uint8_t, 32>& vec,
+                         int8_t b31, int8_t b30, int8_t b29, int8_t b28,
+                         int8_t b27, int8_t b26, int8_t b25, int8_t b24,
+                         int8_t b23, int8_t b22, int8_t b21, int8_t b20,
+                         int8_t b19, int8_t b18, int8_t b17, int8_t b16,
+                         int8_t b15, int8_t b14, int8_t b13, int8_t b12,
+                         int8_t b11, int8_t b10, int8_t b9, int8_t b8,
+                         int8_t b7, int8_t b6, int8_t b5, int8_t b4,
+                         int8_t b3, int8_t b2, int8_t b1, int8_t b0);
+
+    void shorts_to_batch_vector(batch<uint8_t, 32>& vec,
+                          int16_t s15, int16_t s14, int16_t s13, int16_t s12,
+                          int16_t s11, int16_t s10, int16_t s9, int16_t s8,
+                          int16_t s7, int16_t s6, int16_t s5, int16_t s4,
+                          int16_t s3, int16_t s2, int16_t s1, int16_t s0);
+
+    void words_to_batch_vector(batch<uint8_t, 32>& vec,
+                         int32_t i7, int32_t i6, int32_t i5, int32_t i4,
+                         int32_t i3, int32_t i2, int32_t i1, int32_t i0);
+
+    void longs_to_batch_vector(batch<uint8_t, 32>& vec,
+                           int64_t d3, int64_t d2, int64_t d1, int64_t d0);
+
     /***************************************
      * conversion functions implementation *
      ***************************************/
@@ -257,6 +285,49 @@ namespace xsimd
     XSIMD_BITWISE_CAST_INTRINSIC(int64_t, 4,
                                  double, 4,
                                  _mm256_castsi256_pd)
+
+    /*****************************************
+     * vector cast functions implementation *
+     *****************************************/
+
+    inline void bytes_to_batch_vector(batch<uint8_t, 32>& vec,
+                                int8_t b31, int8_t b30, int8_t b29, int8_t b28,
+                                int8_t b27, int8_t b26, int8_t b25, int8_t b24,
+                                int8_t b23, int8_t b22, int8_t b21, int8_t b20,
+                                int8_t b19, int8_t b18, int8_t b17, int8_t b16,
+                                int8_t b15, int8_t b14, int8_t b13, int8_t b12,
+                                int8_t b11, int8_t b10, int8_t b9, int8_t b8,
+                                int8_t b7, int8_t b6, int8_t b5, int8_t b4,
+                                int8_t b3, int8_t b2, int8_t b1, int8_t b0)
+    {
+        vec = _mm256_set_epi8(
+            b31, b30, b29, b28, b27, b26, b25, b24, b23, b22, b21, b20, b19, b18, b17,
+            b16, b15, b14, b13, b12, b11, b10, b9, b8, b7, b6, b5, b4, b3, b2, b1, b0);
+    }
+
+    inline void shorts_to_batch_vector(batch<uint8_t, 32>& vec,
+                                 int16_t s15, int16_t s14, int16_t s13, int16_t s12,
+                                 int16_t s11, int16_t s10, int16_t s9, int16_t s8,
+                                 int16_t s7, int16_t s6, int16_t s5, int16_t s4,
+                                 int16_t s3, int16_t s2, int16_t s1, int16_t s0)
+    {
+        vec = _mm256_set_epi16(
+            s15, s14, s13, s12, s11, s10, s9, s8, s7, s6, s5, s4, s3, s2, s1, s0);
+    }
+
+    inline void words_to_batch_vector(batch<uint8_t, 32>& vec,
+                                int32_t i7, int32_t i6, int32_t i5, int32_t i4,
+                                int32_t i3, int32_t i2, int32_t i1, int32_t i0)
+    {
+        vec = _mm256_set_epi32(i7, i6, i5, i4, i3, i2, i1, i0);
+    }
+
+    inline void longs_to_batch_vector(batch<uint8_t, 32>& vec,
+                                  int64_t d3, int64_t d2, int64_t d1, int64_t d0)
+    {
+        vec = _mm256_set_epi64x(d3, d2, d1, d0);
+    }
+
 }
 
 #endif

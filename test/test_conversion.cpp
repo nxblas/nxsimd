@@ -150,6 +150,71 @@ protected:
             EXPECT_VECTOR_EQ(ui8vres, ui8res) << print_function_name("u8_to_64");
         }
     }
+
+    void test_to_vector()
+    {
+        switch(N)
+        {
+#if (XSIMD_ARM_INSTR_SET >= XSIMD_ARM7_NEON_VERSION) || (XSIMD_X86_INSTR_SET >= XSIMD_X86_SSE_VERSION)
+            case 2:
+            {
+                xsimd::batch<uint8_t, 16> ui8_2_op;
+                xsimd::batch<uint8_t, 16> ui8_2_exp(2);
+                bytes_to_batch_vector(ui8_2_op, 2, 2, 2, 2, 2, 2, 2, 2,
+                                2, 2, 2, 2, 2, 2, 2, 2);
+                EXPECT_BATCH_EQ(ui8_2_op, ui8_2_exp) << print_function_name("128bit: bytes to vector");
+
+                xsimd::batch<uint16_t, 8>  ui16_2_exp(2);
+                ui8_2_exp = u16_to_u8(ui16_2_exp);
+                shorts_to_batch_vector(ui8_2_op, 2, 2, 2, 2, 2, 2, 2, 2);
+                EXPECT_BATCH_EQ(ui8_2_op, ui8_2_exp) << print_function_name("128bit: shorts to vector");
+
+                xsimd::batch<uint32_t, 4>  ui32_2_exp(2);
+                ui8_2_exp = u32_to_u8(ui32_2_exp);
+                words_to_batch_vector(ui8_2_op, 2, 2, 2, 2);
+                EXPECT_BATCH_EQ(ui8_2_op, ui8_2_exp) << print_function_name("128bit: words to vector");
+
+                xsimd::batch<uint64_t, 2> ui64_2_exp(2);
+                ui8_2_exp = u64_to_u8(ui64_2_exp);
+                longs_to_batch_vector(ui8_2_op, 2, 2);
+                EXPECT_BATCH_EQ(ui8_2_op, ui8_2_exp) << print_function_name("128bit: longs to vector");
+            }
+                break;
+#endif
+
+#if (XSIMD_X86_INSTR_SET >= XSIMD_X86_AVX_VERSION)
+            case 4:
+            {
+                xsimd::batch<uint8_t, 32> ui8_4_op;
+                xsimd::batch<uint8_t, 32> ui8_4_exp(4);
+                bytes_to_batch_vector(ui8_4_op, 4, 4, 4, 4, 4, 4, 4, 4,
+                                4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+                                4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+                                4, 4, 4, 4);
+                EXPECT_BATCH_EQ(ui8_4_op, ui8_4_exp) << print_function_name("256bit: bytes to vector");
+
+                xsimd::batch<uint16_t, 16> ui16_4_exp(4);
+                ui8_4_exp = u16_to_u8(ui16_4_exp);
+                shorts_to_batch_vector(ui8_4_op, 4, 4, 4, 4, 4, 4, 4, 4,
+                                 4, 4, 4, 4, 4, 4, 4, 4);
+                EXPECT_BATCH_EQ(ui8_4_op, ui8_4_exp) << print_function_name("256bit: shorts to vector");
+
+                xsimd::batch<uint32_t, 8> ui32_4_exp(4);
+                ui8_4_exp = u32_to_u8(ui32_4_exp);
+                words_to_batch_vector(ui8_4_op, 4, 4, 4, 4, 4, 4, 4, 4);
+                EXPECT_BATCH_EQ(ui8_4_op, ui8_4_exp) << print_function_name("256bit: words to vector");
+
+                xsimd::batch<uint64_t, 4> ui64_4_exp(4);
+                ui8_4_exp = u64_to_u8(ui64_4_exp);
+                longs_to_batch_vector(ui8_4_op, 4, 4, 4, 4);
+                EXPECT_BATCH_EQ(ui8_4_op, ui8_4_exp) << print_function_name("256bit: longs to vector");
+            }
+                break;
+#endif
+            default:
+                return;
+        }
+    }
 };
 
 TYPED_TEST_SUITE(conversion_test, conversion_types, conversion_test_names);
@@ -177,4 +242,9 @@ TYPED_TEST(conversion_test, to_double)
 TYPED_TEST(conversion_test, u8_casting)
 {
     this->test_u8_casting();
+}
+
+TYPED_TEST(conversion_test, to_vector)
+{
+    this->test_to_vector();
 }

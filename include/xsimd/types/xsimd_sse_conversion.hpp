@@ -47,6 +47,26 @@ namespace xsimd
     batch_bool<float, 4> bool_cast(const batch_bool<int32_t, 4>& x);
     batch_bool<double, 2> bool_cast(const batch_bool<int64_t, 2>& x);
 
+    /******************************************
+     *  Convert Bytes, Shorts, Words, Doubles *
+     *  to batch functions                    *
+     ******************************************/
+
+    void bytes_to_batch_vector(batch<uint8_t, 16>& vec,
+                         int8_t b15, int8_t b14, int8_t b13, int8_t b12,
+                         int8_t b11, int8_t b10, int8_t b9, int8_t b8,
+                         int8_t b7, int8_t b6, int8_t b5, int8_t b4,
+                         int8_t b3, int8_t b2, int8_t b1, int8_t b0);
+
+    void shorts_to_batch_vector(batch<uint8_t, 16>& vec,
+                          int16_t s7, int16_t s6, int16_t s5, int16_t s4,
+                          int16_t s3, int16_t s2, int16_t s1, int16_t s0);
+
+    void words_to_batch_vector(batch<uint8_t, 16>& vec,
+                         int32_t i3, int32_t i2, int32_t i1, int32_t i0);
+
+    void longs_to_batch_vector(batch<uint8_t, 16>& vec, int64_t d1, int64_t d0);
+
     /***************************************
      * conversion functions implementation *
      ***************************************/
@@ -213,6 +233,38 @@ namespace xsimd
     XSIMD_BITWISE_CAST_INTRINSIC(int64_t, 2,
                                  double, 2,
                                  _mm_castsi128_pd)
+
+    /*****************************************
+     * vector cast functions implementation *
+     *****************************************/
+
+    inline void bytes_to_batch_vector(batch<uint8_t, 16>& vec,
+                                int8_t b15, int8_t b14, int8_t b13, int8_t b12,
+                                int8_t b11, int8_t b10, int8_t b9, int8_t b8,
+                                int8_t b7, int8_t b6, int8_t b5, int8_t b4,
+                                int8_t b3, int8_t b2, int8_t b1, int8_t b0)
+    {
+        vec = _mm_set_epi8(
+            b15, b14, b13, b12, b11, b10, b9, b8, b7, b6, b5, b4, b3, b2, b1, b0);
+    }
+
+    inline void shorts_to_batch_vector(batch<uint8_t, 16>& vec,
+                                 int16_t s7, int16_t s6, int16_t s5, int16_t s4,
+                                 int16_t s3, int16_t s2, int16_t s1, int16_t s0)
+    {
+        vec = _mm_set_epi16(s7, s6, s5, s4, s3, s2, s1, s0);
+    }
+
+    inline void words_to_batch_vector(batch<uint8_t, 16>& vec,
+                                int32_t i3, int32_t i2, int32_t i1, int32_t i0)
+    {
+        vec = _mm_set_epi32(i3, i2, i1, i0);
+    }
+
+    inline void longs_to_batch_vector(batch<uint8_t, 16>& vec, int64_t d1, int64_t d0)
+    {
+        vec = _mm_set_epi64x(d1, d0);
+    }
 }
 
 #endif

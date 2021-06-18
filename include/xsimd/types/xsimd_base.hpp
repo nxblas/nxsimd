@@ -13,6 +13,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <cstdarg>
 #include <complex>
 #include <iterator>
 #include <ostream>
