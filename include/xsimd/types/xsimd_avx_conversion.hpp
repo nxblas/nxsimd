@@ -257,6 +257,26 @@ namespace xsimd
     XSIMD_BITWISE_CAST_INTRINSIC(int64_t, 4,
                                  double, 4,
                                  _mm256_castsi256_pd)
+
+    /****************************
+     * permute 256bit functions *
+     ****************************/
+#if XSIMD_X86_INSTR_SET >= XSIMD_X86_AVX2_VERSION
+    batch<uint8_t, 32> permute256_8x32_convert(const batch<uint8_t, 32>& x, const batch<uint8_t, 32>& p_mask);
+    batch<uint8_t, 32> permute256_2x128_convert(const batch<uint8_t, 32>& lhs,
+                                                const batch<uint8_t, 32>& rhs, const int idx);
+
+    inline batch<uint8_t, 32> permute256_8x32_convert(const batch<uint8_t, 32>& x, const batch<uint8_t, 32>& p_mask)
+    {
+        return _mm256_permutevar8x32_epi32(x, p_mask);
+    }
+
+    inline batch<uint8_t, 32> permute256_2x128_convert(const batch<uint8_t, 32>& lhs, const batch<uint8_t, 32>& rhs,
+                                                       const int idx)
+    {
+        return _mm256_permute2x128_si256(lhs, rhs, idx);
+    }
+#endif
 }
 
 #endif

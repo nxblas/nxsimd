@@ -281,6 +281,32 @@ namespace xsimd
     XSIMD_BITWISE_CAST_INTRINSIC(int64_t, 8,
                                  double, 8,
                                  _mm512_castsi512_pd)
+
+    /****************************
+     * permute 512bit functions *
+     ****************************/
+#if defined(XSIMD_AVX512BW_AVAILABLE)
+    batch<uint8_t, 64> permute512_16_convert(const batch<uint8_t, 64>& p_mask, const batch<uint8_t, 64>& lhs);
+
+    inline batch<uint8_t, 64> permute512_16_convert(const batch<uint8_t, 64>& p_mask, const batch<uint8_t, 64>& lhs)
+    {
+        return _mm512_permutexvar_epi16(p_mask, lhs);
+    }
+#endif
+
+    batch<uint8_t, 64> permute512_32_convert(const batch<uint8_t, 64>& p_mask, const batch<uint8_t, 64>& lhs);
+    batch<uint8_t, 64> permute512_32x4_convert(const batch<uint8_t, 64>& lhs,
+                                               const batch<uint8_t, 64>& rhs, const int idx);
+    inline batch<uint8_t, 64> permute512_32_convert(const batch<uint8_t, 64>& p_mask, const batch<uint8_t, 64>& lhs)
+    {
+        return _mm512_permutexvar_epi32(p_mask, lhs);
+    }
+
+    inline batch<uint8_t, 64> permute512_32x4_convert(const batch<uint8_t, 64>& lhs, const batch<uint8_t, 64>& rhs,
+                                                      const int idx)
+    {
+        return _mm512_shuffle_i32x4(lhs, rhs, idx);
+    }
 }
 
 #endif
