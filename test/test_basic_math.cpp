@@ -18,13 +18,15 @@ namespace detail
         static void test_isfinite()
         {
             T input(1.);
-            EXPECT_TRUE(xsimd::all(xsimd::isfinite(input))) << print_function_name("isfinite");
+            INFO(print_function_name("isfinite"));
+            EXPECT_TRUE(xsimd::all(xsimd::isfinite(input)));
         }
 
         static void test_isinf()
         {
             T input(1.);
-            EXPECT_FALSE(xsimd::any(xsimd::isinf(input))) << print_function_name("isfinite");
+            INFO(print_function_name("isinf"));
+            EXPECT_FALSE(xsimd::any(xsimd::isinf(input)));
         }
     };
 
@@ -34,12 +36,14 @@ namespace detail
         static void test_isfinite()
         {
             T input = xsimd::infinity<T>();
-            EXPECT_FALSE(xsimd::any(xsimd::isfinite(input))) << print_function_name("isfinite");
+            INFO(print_function_name("isfinite"));
+            EXPECT_FALSE(xsimd::any(xsimd::isfinite(input)));
         }
         static void test_isinf()
         {
             T input = xsimd::infinity<T>();
-            EXPECT_TRUE(xsimd::all(xsimd::isinf(input))) << print_function_name("isfinite");
+            INFO(print_function_name("isinf"));
+            EXPECT_TRUE(xsimd::all(xsimd::isinf(input)));
         }
     };
 }
@@ -47,7 +51,7 @@ namespace detail
 template <class B>
 class basic_math_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using value_type = typename B::value_type;
@@ -78,7 +82,7 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return std::fmod(l, r); });
             batch_type res = xsimd::fmod(batch_lhs(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("fmod");
+            EXPECT_BATCH_EQ_MESSAGE(res, expected, print_function_name("fmod"));
         }
         // remainder
         {
@@ -86,7 +90,7 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return std::remainder(l, r); });
             batch_type res = xsimd::remainder(batch_lhs(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("remainder");
+            EXPECT_BATCH_EQ_MESSAGE(res, expected, print_function_name("remainder"));
         }
         // fdim
         {
@@ -94,7 +98,7 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return std::fdim(l, r); });
             batch_type res = xsimd::fdim(batch_lhs(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("fdim");
+            EXPECT_BATCH_EQ_MESSAGE(res, expected, print_function_name("fdim"));
         }
         // clip
         {
@@ -106,7 +110,7 @@ protected:
                                return l < clip_lo ? clip_lo : clip_hi < l ? clip_hi : l;
                            });
             batch_type res = xsimd::clip(batch_clip_input(), batch_type(clip_lo), batch_type(clip_hi));
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("clip");
+            EXPECT_BATCH_EQ_MESSAGE(res, expected, print_function_name("clip"));
         }
         // isfinite
         {
@@ -122,7 +126,7 @@ protected:
             std::transform(from_input.cbegin(), from_input.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return std::nextafter(l, r); });
             batch_type res = xsimd::nextafter(batch_from_input(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("nextafter");
+            EXPECT_BATCH_EQ_MESSAGE(res, expected, print_function_name("nextafter"));
         }
     }
 
@@ -149,10 +153,15 @@ private:
     }
 };
 
-TYPED_TEST_SUITE(basic_math_test, batch_math_types, simd_test_names);
 
-TYPED_TEST(basic_math_test, basic_functions)
+TEST_SUITE("basic_math_test")
 {
-    this->test_basic_functions();
+
+    TEST_CASE_TEMPLATE_DEFINE("basic_functions", TypeParam, basic_math_test_basic_functions)
+    {
+        basic_math_test<TypeParam> tester;
+        tester.test_basic_functions();
+    }
+    TEST_CASE_TEMPLATE_APPLY(basic_math_test_basic_functions, batch_math_types);
 }
 

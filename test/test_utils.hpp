@@ -12,15 +12,31 @@
 #include <climits>
 #include <limits>
 #include <sstream>
+#include <iomanip>
 #include <type_traits>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include "doctest/doctest.h"
+#include "test_common_macros.hpp"
 
 #include "xsimd/xsimd.hpp"
 
 #ifndef XSIMD_TEST_UTILS_HPP
 #define XSIMD_TEST_UTILS_HPP
+
+
+
+// the tests used to be implemented with gtest
+// testing::Types<...> and testing::Test
+// where introduced to keep compatible
+// with the gtest test where we can
+namespace testing
+{
+    template<class ... ARGS>
+    using Types = std::tuple<ARGS ...>;
+
+    struct Test{};
+}
 
 /*******************
  * Pretty printers *
@@ -295,6 +311,190 @@ namespace detail
         }
     };
 
+
+    template<class V>
+    bool vector_comparison_func(const V& lhs, const V& rhs)
+    {
+        return vector_comparison<V>::run(lhs, rhs);
+    }
+
+    template<class V>
+    bool scalar_comparison_func(const V& lhs, const V& rhs)
+    {
+        return scalar_comparison<V>::run(lhs, rhs);
+    }
+
+
+
+    template <class T, size_t N>
+    bool expect_batch_near(const ::xsimd::batch<T, N>& lhs,
+                           const std::array<T, N>& rhs)
+    {
+        std::array<T, N> tmp;
+        lhs.store_unaligned(tmp.data());
+        return vector_comparison_func(tmp, rhs);
+    }
+
+    template <class T, size_t N>
+    bool expect_batch_near(const std::array<T, N>& lhs,
+                           const ::xsimd::batch<T, N>& rhs)
+    {
+        std::array<T, N> tmp;
+        rhs.store_unaligned(tmp.data());
+        return vector_comparison_func(lhs, tmp);
+
+    }
+
+    template <class T, size_t N>
+    bool expect_batch_near(const ::xsimd::batch<T, N>& lhs,
+                           const ::xsimd::batch<T, N>& rhs)
+    {
+        std::array<T, N> tmp;
+        lhs.store_unaligned(tmp.data());
+        return expect_batch_near(tmp, rhs);
+    }
+
+    template <class T, size_t N>
+    bool expect_batch_near(const ::xsimd::batch_bool<T, N>& lhs,
+                           const std::array<bool, N>& rhs)
+    {
+        std::array<bool, N> tmp;
+        lhs.store_unaligned(tmp.data());
+        return vector_comparison_func(tmp, rhs);
+    }
+
+    template <class T, size_t N>
+    bool expect_batch_near(const std::array<bool, N>& lhs,
+                           const ::xsimd::batch_bool<T, N>& rhs)
+    {
+        std::array<bool, N> tmp;
+        rhs.store_unaligned(tmp.data());
+        return vector_comparison_func(lhs, tmp);
+    }
+
+    template <class T, size_t N>
+    bool expect_batch_near(const ::xsimd::batch_bool<T, N>& lhs,
+                           const ::xsimd::batch_bool<T, N>& rhs)
+    {
+        std::array<bool, N> tmp;
+        lhs.store_unaligned(tmp.data());
+        return expect_batch_near(tmp, rhs);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    inline std::string print_non_equal(const std::string & name,
+                                const std::string & lhs,
+                                const std::string & rhs)
+    {
+        std::stringstream ss;
+        ss<<name<<" FAILED: "<<lhs<<" != "<<rhs<<"\n";
+        return ss.str();
+    }
+
+    template <class V>
+    inline std::string print_on_expect_scalar_eq_fail(const V& lhs, const V & rhs)
+    {
+        std::stringstream lhs_ss;
+        std::stringstream rhs_ss;
+        lhs_ss << std::setprecision(std::numeric_limits<V>::digits10 + 2) << lhs;
+        rhs_ss << std::setprecision(std::numeric_limits<V>::digits10 + 2) << rhs;
+        return print_non_equal("EXPECT_SCALAR_EQ", lhs_ss.str(), rhs_ss.str());
+    }
+
+    template<class C>
+    inline std::string container_to_string(const C & c)
+    {
+        using value_type = typename C::value_type;
+        std::stringstream ss;
+
+        ss << std::setprecision(std::numeric_limits<value_type>::digits10 + 2)<< "[";
+        std::for_each(c.begin(), c.end(), [&](value_type v)        {
+            ss << v <<" ";
+        });
+        ss << "]";
+        return ss.str();
+    }
+
+    template<class T, std::size_t N>
+    inline std::string container_to_string(const xsimd::batch_bool<T, N> & c)
+    {
+        std::array<bool, N> tmp;
+        c.store_unaligned(tmp.data());
+        return container_to_string(tmp);
+    }
+
+    template<class T, std::size_t N>
+    inline std::string container_to_string(const xsimd::batch<T, N> & c)
+    {
+        std::array<T, N> tmp;
+        c.store_unaligned(tmp.data());
+        return container_to_string(tmp);
+    }
+
+    template <class VL, class VR>
+    inline std::string print_on_container_eq_fail(const std::string name, const VL& lhs, const VR & rhs)
+    {
+        return print_non_equal(name, container_to_string(lhs), container_to_string(rhs));
+    }
+
+    // use do-while false pattern as doctest
+    // https://stackoverflow.com/questions/2314066/do-whilefalse
+    #define EXPECT_SCALAR_EQ(s1, s2)\
+        do{\
+            INFO(::detail::print_on_expect_scalar_eq_fail(s1, s2));\
+            REQUIRE_UNARY(::detail::scalar_comparison_func(s1, s2 ));\
+        } while(false)
+
+
+    #define EXPECT_BATCH_EQ(s1, s2)\
+        do{\
+            INFO(::detail::print_on_container_eq_fail("EXPECT_BATCH_EQ",s1, s2));\
+            REQUIRE_UNARY(::detail::expect_batch_near(s1, s2));\
+        } while(false)
+
+
+    #define EXPECT_VECTOR_EQ(s1, s2)\
+        do{\
+            INFO(::detail::print_on_container_eq_fail("EXPECT_VECTOR_EQ",s1, s2));\
+            REQUIRE_UNARY(::detail::vector_comparison_func(s1, s2));\
+        } while(false)
+
+    #define EXPECT_VECTOR_EQ_MESSAGE(s1, s2, m)\
+        do{\
+            INFO(m);\
+            EXPECT_VECTOR_EQ(s1, s2);\
+        } while(false)
+
+    #define EXPECT_BATCH_EQ_MESSAGE(s1, s2, m)\
+        do{\
+            INFO(m);\
+            EXPECT_BATCH_EQ(s1, s2);\
+        } while(false)
+
+
+    #if 0
+        
+
+
+    
+
+
     template <class T>
     testing::AssertionResult expect_scalar_near(const char* lhs_expression,
                                                 const char* rhs_expression,
@@ -320,6 +520,8 @@ namespace detail
                                             rhs_ss.str(),
                                             false);
     }
+
+
 
     template <class V>
     testing::AssertionResult expect_container_near(const char* lhs_expression,
@@ -433,6 +635,9 @@ namespace detail
         return expect_batch_near(lhs_expression, rhs_expression, tmp, rhs);
     }
 
+
+    #endif
+
     template <class It>
     size_t get_nb_diff(It lhs_begin, It lhs_end, It rhs_begin)
     {
@@ -473,9 +678,11 @@ namespace detail
     }
 }
 
+#if 0
 #define EXPECT_BATCH_EQ(b1, b2) EXPECT_PRED_FORMAT2(::detail::expect_batch_near, b1, b2)
 #define EXPECT_SCALAR_EQ(s1, s2) EXPECT_PRED_FORMAT2(::detail::expect_scalar_near, s1, s2)
 #define EXPECT_VECTOR_EQ(v1, v2) EXPECT_PRED_FORMAT2(::detail::expect_vector_near, v1, v2)
+#endif
 
 namespace xsimd
 {
@@ -546,7 +753,7 @@ namespace xsimd
 #endif
 
 template <class T>
-using to_testing_types = xsimd::mpl::cast_t<T, testing::Types>;
+using to_testing_types = xsimd::mpl::cast_t<T, std::tuple>;
 
 namespace xsimd
 {

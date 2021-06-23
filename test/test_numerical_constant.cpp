@@ -21,11 +21,10 @@ struct numerical_constant : public testing::Test
 };
 
 using FloatingPointTypes = testing::Types<float, double>;
-TYPED_TEST_SUITE(numerical_constant, FloatingPointTypes);
 
-TYPED_TEST(numerical_constant, constants)
+TEST_CASE_TEMPLATE_DEFINE("constants", TypeParam, numerical_constant_constants)
 {
-    using T = typename TestFixture::type;
+    using T = typename numerical_constant<TypeParam>::type;
     EXPECT_TRUE(std::isinf(xsimd::infinity<T>()) && xsimd::infinity<T>() > 0);
     EXPECT_EQ(xsimd::invlog_2<T>(), T(1) / std::log(T(2)));
     EXPECT_EQ(xsimd::invlog10_2<T>(), T(1) / std::log10(T(2)));
@@ -36,3 +35,4 @@ TYPED_TEST(numerical_constant, constants)
     EXPECT_TRUE(xsimd::smallestposval<T>() < std::numeric_limits<T>::epsilon());
 }
 
+TEST_CASE_TEMPLATE_APPLY(numerical_constant_constants, FloatingPointTypes);

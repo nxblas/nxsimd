@@ -7,13 +7,18 @@
 *                                                                          *
 * The full license is in the file LICENSE, distributed with this software. *
 ****************************************************************************/
+#define DOCTEST_CONFIG_IMPLEMENT
+
+#if defined(XSIMD_NO_EXCEPTIONS)
+    #define DOCTEST_CONFIG_NO_EXCEPTIONS
+#endif
+#include "doctest/doctest.h"
 
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <string>
 
-#include "gtest/gtest.h"
 #include "xsimd/config/xsimd_instruction_set.hpp"
 
 using info_map_type = std::map<int, std::string>;
@@ -55,13 +60,13 @@ std::string get_instruction_set_name()
     return info_map[XSIMD_INSTR_SET];
 }
 
-int main(int argc, char* argv[])
+int main(int , char** )
 {
     std::ofstream out("log/xsimd_info.log", std::ios_base::out);
     std::string instruction_set = get_instruction_set_name();
     out << "Instruction set: " << instruction_set << std::endl;
     std::cout << "Instruction set: " << instruction_set << std::endl;
-
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    doctest::Context context;
+    int res = context.run(); // run
+    return res;
 }

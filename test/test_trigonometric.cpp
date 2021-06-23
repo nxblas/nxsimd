@@ -13,7 +13,7 @@
 template <class B>
 class trigonometric_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using value_type = typename B::value_type;
@@ -57,7 +57,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("sin");
+            {
+                INFO(print_function_name("sin"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // cos
         {
@@ -71,7 +74,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("cos");
+            {
+                INFO(print_function_name("cos"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // sincos
         {
@@ -89,9 +95,15 @@ protected:
                 detail::store_batch(out2, res2, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("sincos(sin)");
+            {
+                INFO(print_function_name("sincos(sin)"));
+                EXPECT_EQ(diff, 0);
+            }
             diff = detail::get_nb_diff(res2, expected2);
-            EXPECT_EQ(diff, 0) << print_function_name("sincos(cos)");
+            {
+                INFO(print_function_name("sincos(cos)"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // tan
         {
@@ -105,7 +117,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("tan");
+            {
+                INFO(print_function_name("tan"));
+                EXPECT_EQ(diff, 0);
+            }
         }
     }
 
@@ -123,7 +138,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("asin");
+            {
+                INFO(print_function_name("asin"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // acos
         {
@@ -137,7 +155,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("acos");
+            {
+                INFO(print_function_name("acos"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // atan
         {
@@ -151,7 +172,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("atan");
+            {
+                INFO(print_function_name("atan"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // atan2
         {
@@ -166,20 +190,26 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("atan2");
+            {
+                INFO(print_function_name("atan2"));
+                EXPECT_EQ(diff, 0);
+            }
         }
     }
 };
 
-TYPED_TEST_SUITE(trigonometric_test, batch_float_types, simd_test_names);
 
-TYPED_TEST(trigonometric_test, trigonometric)
+TEST_CASE_TEMPLATE_DEFINE("trigonometric", TypeParam, trigonometric_test_trigonometric)
 {
-    this->test_trigonometric_functions();
+    trigonometric_test<TypeParam> tester;
+    tester.test_trigonometric_functions();
 }
 
-TYPED_TEST(trigonometric_test, reciprocal)
+TEST_CASE_TEMPLATE_DEFINE("reciprocal", TypeParam, trigonometric_test_reciprocal)
 {
-    this->test_reciprocal_functions();
+    trigonometric_test<TypeParam> tester;
+    tester.test_reciprocal_functions();
 }
 
+TEST_CASE_TEMPLATE_APPLY(trigonometric_test_trigonometric, batch_float_types);
+TEST_CASE_TEMPLATE_APPLY(trigonometric_test_reciprocal, batch_float_types);

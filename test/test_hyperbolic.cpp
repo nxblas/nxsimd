@@ -13,7 +13,7 @@
 template <class B>
 class hyperbolic_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using value_type = typename B::value_type;
@@ -57,7 +57,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("sinh");
+            {
+                INFO(print_function_name("sinh"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // cosh
         {
@@ -71,7 +74,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("cosh");
+            {
+                INFO(print_function_name("cosh"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // tanh
         {
@@ -85,7 +91,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("tanh");
+            {
+                INFO(print_function_name("tanh"));
+                EXPECT_EQ(diff, 0);
+            }
         }
     }
 
@@ -103,7 +112,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("asinh");
+            {
+                INFO(print_function_name("asinh"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // acosh
         {
@@ -117,7 +129,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("acosh");
+            {
+                INFO(print_function_name("acosh"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // atanh
         {
@@ -131,19 +146,25 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("atanh");
+            {
+                INFO(print_function_name("atanh"));
+                EXPECT_EQ(diff, 0);
+            }
         }
     }
 };
 
-TYPED_TEST_SUITE(hyperbolic_test, batch_float_types, simd_test_names);
 
-TYPED_TEST(hyperbolic_test, hyperbolic)
+TEST_CASE_TEMPLATE_DEFINE("hyperbolic", TypeParam, hyperbolic_test_hyperbolic)
 {
-    this->test_hyperbolic_functions();
+    hyperbolic_test<TypeParam> tester;
+    tester.test_hyperbolic_functions();
 }
 
-TYPED_TEST(hyperbolic_test, reciprocal)
+TEST_CASE_TEMPLATE_DEFINE("reciprocal", TypeParam, hyperbolic_test_reciprocal)
 {
-    this->test_reciprocal_functions();
+    hyperbolic_test<TypeParam> tester;
+    tester.test_reciprocal_functions();
 }
+TEST_CASE_TEMPLATE_APPLY(hyperbolic_test_hyperbolic, batch_float_types);
+TEST_CASE_TEMPLATE_APPLY(hyperbolic_test_reciprocal, batch_float_types);

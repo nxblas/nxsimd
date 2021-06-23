@@ -13,7 +13,7 @@
 template <class B>
 class poly_evaluation_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using value_type = typename B::value_type;
@@ -49,13 +49,17 @@ protected:
             detail::store_batch(out, estrin_res, i);
         }
         size_t diff = detail::get_nb_diff(horner_res, estrin_res);
-        EXPECT_EQ(diff, 0) << print_function_name("estrin");
+        {
+            INFO(print_function_name("estrin"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 };
 
-TYPED_TEST_SUITE(poly_evaluation_test, batch_float_types, simd_test_names);
 
-TYPED_TEST(poly_evaluation_test, poly_evaluation)
+TEST_CASE_TEMPLATE_DEFINE("poly_evaluation", TypeParam, poly_evaluation_test_poly_evaluation)
 {
-    this->test_poly_evaluation();
+    poly_evaluation_test<TypeParam> tester;
+    tester.test_poly_evaluation();
 }
+TEST_CASE_TEMPLATE_APPLY(poly_evaluation_test_poly_evaluation, batch_float_types);

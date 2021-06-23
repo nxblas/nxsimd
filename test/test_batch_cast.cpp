@@ -54,7 +54,7 @@ namespace detail
 template <class CP>
 class batch_cast_test : public testing::Test
 {
-protected:
+public:
 
     static constexpr size_t N = CP::size;
     static constexpr size_t A = CP::alignment;
@@ -323,28 +323,40 @@ private:
         if (detail::is_convertible<T_out>(in_test_value))
         {
             B_common_out res = xsimd::batch_cast<T_out>(B_common_in(in_test_value));
-            EXPECT_SCALAR_EQ(res[0], static_cast<T_out>(in_test_value)) << print_function_name(name);
+            {
+                INFO(print_function_name(name));
+                EXPECT_SCALAR_EQ(res[0], static_cast<T_out>(in_test_value));
+            }
         }
     }
 };
 
-TYPED_TEST_SUITE(batch_cast_test, conversion_types, conversion_test_names);
 
-TYPED_TEST(batch_cast_test, cast)
+TEST_SUITE_BEGIN("batch_cast_test");
+
+TEST_CASE_TEMPLATE_DEFINE("cast", TypeParam, batch_cast_test_cast)
 {
-    this->test_cast();
+    batch_cast_test<TypeParam> tester;
+    tester.test_cast();
 }
+TEST_CASE_TEMPLATE_APPLY(batch_cast_test_cast, conversion_types);
 
 #if XSIMD_X86_INSTR_SET >= XSIMD_X86_AVX_VERSION
-TYPED_TEST(batch_cast_test, cast_sizeshift1)
+TEST_CASE_TEMPLATE_DEFINE("cast_sizeshift1", TypeParam, batch_cast_test_cast_sizeshift1)
 {
-    this->test_cast_sizeshift1();
+    batch_cast_test<TypeParam> tester;
+    tester.test_cast_sizeshift1();
 }
+TEST_CASE_TEMPLATE_APPLY(batch_cast_test_cast_sizeshift1, conversion_types);
 #endif
 
 #if XSIMD_X86_INSTR_SET >= XSIMD_X86_AVX512_VERSION
-TYPED_TEST(batch_cast_test, cast_sizeshift2)
+TEST_CASE_TEMPLATE_DEFINE("cast_sizeshift2", TypeParam, batch_cast_test_cast_sizeshift2)
 {
-    this->test_cast_sizeshift2();
+    batch_cast_test<TypeParam> tester;
+    tester.test_cast_sizeshift2();
 }
+TEST_CASE_TEMPLATE_APPLY(batch_cast_test_cast_sizeshift2, conversion_types);
 #endif
+
+TEST_SUITE_END();

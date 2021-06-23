@@ -13,7 +13,7 @@
 template <class B>
 class complex_power_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using real_batch_type = typename B::real_batch;
@@ -69,7 +69,10 @@ protected:
             detail::store_batch(out, real_res, i);
         }
         size_t diff = detail::get_nb_diff(real_res, real_expected);
-        EXPECT_EQ(diff, 0) << print_function_name("abs");
+        {
+            INFO(print_function_name("abs"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_arg()
@@ -86,7 +89,10 @@ protected:
             detail::store_batch(out, real_res, i);
         }
         size_t diff = detail::get_nb_diff(real_res, real_expected);
-        EXPECT_EQ(diff, 0) << print_function_name("arg");
+        {
+            INFO(print_function_name("arg"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_pow()
@@ -106,7 +112,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("sqrt_nn");
+        {
+            INFO(print_function_name("sqrt_nn"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_sqrt_pn()
@@ -121,7 +130,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("sqrt_pn");
+        {
+            INFO(print_function_name("sqrt_pn"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_sqrt_np()
@@ -136,7 +148,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("sqrt_nn");
+        {
+            INFO(print_function_name("sqrt_nn"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_sqrt_pp()
@@ -151,7 +166,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("sqrt_pp");
+        {
+            INFO(print_function_name("sqrt_pp"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
 private:
@@ -169,7 +187,10 @@ private:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("pow");
+        {
+            INFO(print_function_name("pow"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     template <class T, typename std::enable_if<!std::is_same<T, float>::value, int>::type = 0>
@@ -192,41 +213,54 @@ private:
     }
 };
 
-TYPED_TEST_SUITE(complex_power_test, batch_complex_types, simd_test_names);
 
-TYPED_TEST(complex_power_test, abs)
+TEST_CASE_TEMPLATE_DEFINE("abs", TypeParam, complex_power_test_abs)
 {
-    this->test_abs();
+    complex_power_test<TypeParam> tester;
+    tester.test_abs();
 }
 
-TYPED_TEST(complex_power_test, arg)
+TEST_CASE_TEMPLATE_DEFINE("arg", TypeParam, complex_power_test_arg)
 {
-    this->test_arg();
+    complex_power_test<TypeParam> tester;
+    tester.test_arg();
 }
 
-TYPED_TEST(complex_power_test, pow)
+TEST_CASE_TEMPLATE_DEFINE("pow", TypeParam, complex_power_test_pow)
 {
-    this->test_pow();
+    complex_power_test<TypeParam> tester;
+    tester.test_pow();
 }
 
-TYPED_TEST(complex_power_test, sqrt_nn)
+TEST_CASE_TEMPLATE_DEFINE("sqrt_nn", TypeParam, complex_power_test_sqrt_nn)
 {
-    this->test_sqrt_nn();
-}
-
-
-TYPED_TEST(complex_power_test, sqrt_pn)
-{
-    this->test_sqrt_pn();
-}
-
-TYPED_TEST(complex_power_test, sqrt_np)
-{
-    this->test_sqrt_np();
+    complex_power_test<TypeParam> tester;
+    tester.test_sqrt_nn();
 }
 
 
-TYPED_TEST(complex_power_test, sqrt_pp)
+TEST_CASE_TEMPLATE_DEFINE("sqrt_pn", TypeParam, complex_power_test_sqrt_pn)
 {
-    this->test_sqrt_pp();
+    complex_power_test<TypeParam> tester;
+    tester.test_sqrt_pn();
 }
+
+TEST_CASE_TEMPLATE_DEFINE("sqrt_np", TypeParam, complex_power_test_sqrt_np)
+{
+    complex_power_test<TypeParam> tester;
+    tester.test_sqrt_np();
+}
+
+
+TEST_CASE_TEMPLATE_DEFINE("sqrt_pp", TypeParam, complex_power_test_sqrt_pp)
+{
+    complex_power_test<TypeParam> tester;
+    tester.test_sqrt_pp();
+}
+TEST_CASE_TEMPLATE_APPLY(complex_power_test_abs, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_power_test_arg, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_power_test_pow, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_power_test_sqrt_nn, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_power_test_sqrt_pn, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_power_test_sqrt_np, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_power_test_sqrt_pp, batch_complex_types);

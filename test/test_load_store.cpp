@@ -15,7 +15,7 @@
 template <class B>
 class load_store_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using value_type = typename B::value_type;
@@ -117,10 +117,16 @@ private:
         std::copy(v.cbegin(), v.cend(), expected.begin());
 
         b.load_unaligned(v.data());
-        EXPECT_BATCH_EQ(b, expected) << print_function_name(name + " unaligned");
+        {
+            INFO(print_function_name(name + " unaligned"));
+            EXPECT_BATCH_EQ(b, expected);
+        }
         
         b.load_aligned(v.data());
-        EXPECT_BATCH_EQ(b, expected) << print_function_name(name + " aligned");
+        {
+            INFO(print_function_name(name + " aligned"));
+            EXPECT_BATCH_EQ(b, expected);
+        }
     }
     
     template <class V>
@@ -131,10 +137,16 @@ private:
         V res(size);
 
         b.store_unaligned(res.data());
-        EXPECT_VECTOR_EQ(res, v) << print_function_name(name + " unaligned");
+        {
+            INFO(print_function_name(name + " unaligned"));
+            EXPECT_VECTOR_EQ(res, v);
+        }
         
         b.store_aligned(res.data());
-        EXPECT_VECTOR_EQ(res, v) << print_function_name(name + " aligned");
+        {
+            INFO(print_function_name(name + " aligned"));
+            EXPECT_VECTOR_EQ(res, v);
+        }
     }
 
     template <class V>
@@ -156,15 +168,18 @@ private:
     }
 };
 
-TYPED_TEST_SUITE(load_store_test, batch_types, simd_test_names);
 
-TYPED_TEST(load_store_test, load)
+TEST_CASE_TEMPLATE_DEFINE("load", TypeParam, load_store_test_load)
 {
-    this->test_load();
+    load_store_test<TypeParam> tester;
+    tester.test_load();
 }
 
-TYPED_TEST(load_store_test, store)
+TEST_CASE_TEMPLATE_DEFINE("store", TypeParam, load_store_test_store)
 {
-    this->test_store();
+    load_store_test<TypeParam> tester;
+    tester.test_store();
 }
 
+TEST_CASE_TEMPLATE_APPLY(load_store_test_load, batch_types);
+TEST_CASE_TEMPLATE_APPLY(load_store_test_store, batch_types);

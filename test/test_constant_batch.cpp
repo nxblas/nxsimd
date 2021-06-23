@@ -7,13 +7,14 @@
  ****************************************************************************/
 
 #include "test_utils.hpp"
+#include <functional>
 
 using namespace std::placeholders;
 
 template <class B>
 class constant_batch_test : public testing::Test
 {
-  protected:
+  public:
     using batch_type = B;
     using value_type = typename B::value_type;
     static constexpr size_t size = B::size;
@@ -35,8 +36,10 @@ class constant_batch_test : public testing::Test
         std::generate(expected.begin(), expected.end(),
                       [&i]() { return generator::get(i++, size); });
         constexpr auto b = xsimd::make_batch_constant<generator, size>();
-        EXPECT_BATCH_EQ(b(), expected)
-            << print_function_name("batch(value_type)");
+        {
+            INFO(print_function_name("batch(value_type)"));
+            EXPECT_BATCH_EQ(b(), expected);
+        }
     }
 
     struct arange
@@ -54,8 +57,10 @@ class constant_batch_test : public testing::Test
         std::generate(expected.begin(), expected.end(),
                       [&i]() { return arange::get(i++, size); });
         constexpr auto b = xsimd::make_batch_constant<arange, size>();
-        EXPECT_BATCH_EQ(b(), expected)
-            << print_function_name("batch(value_type)");
+        {
+            INFO(print_function_name("batch(value_type)"));
+            EXPECT_BATCH_EQ(b(), expected);
+        }
     }
 
     struct constant
@@ -71,32 +76,36 @@ class constant_batch_test : public testing::Test
         array_type expected;
         std::fill(expected.begin(), expected.end(), constant::get(0, 0));
         constexpr auto b = xsimd::make_batch_constant<constant, size>();
-        EXPECT_BATCH_EQ(b(), expected)
-            << print_function_name("batch(value_type)");
+        {
+            INFO(print_function_name("batch(value_type)"));
+            EXPECT_BATCH_EQ(b(), expected);
+        }
     }
 };
 
-TYPED_TEST_SUITE(constant_batch_test, batch_int_types, simd_test_names);
 
-TYPED_TEST(constant_batch_test, init_from_generator)
+TEST_CASE_TEMPLATE_DEFINE("init_from_generator", TypeParam, constant_batch_test_init_from_generator)
 {
-    this->test_init_from_generator();
+    constant_batch_test<TypeParam> tester;
+    tester.test_init_from_generator();
 }
 
-TYPED_TEST(constant_batch_test, init_from_generator_arange)
+TEST_CASE_TEMPLATE_DEFINE("init_from_generator_arange", TypeParam, constant_batch_test_init_from_generator_arange)
 {
-    this->test_init_from_generator_arange();
+    constant_batch_test<TypeParam> tester;
+    tester.test_init_from_generator_arange();
 }
 
-TYPED_TEST(constant_batch_test, init_from_constant)
+TEST_CASE_TEMPLATE_DEFINE("init_from_constant", TypeParam, constant_batch_test_init_from_constant)
 {
-    this->test_init_from_constant();
+    constant_batch_test<TypeParam> tester;
+    tester.test_init_from_constant();
 }
 
 template <class B>
 class constant_bool_batch_test : public testing::Test
 {
-  protected:
+  public:
     using batch_type = B;
     using value_type = typename B::value_type;
     static constexpr size_t size = B::size;
@@ -119,8 +128,10 @@ class constant_bool_batch_test : public testing::Test
                       [&i]() { return generator::get(i++, size); });
         constexpr auto b =
             xsimd::make_batch_bool_constant<value_type, generator, size>();
-        EXPECT_BATCH_EQ(b(), expected)
-            << print_function_name("batch_bool_constant(value_type)");
+        {
+            INFO(print_function_name("batch_bool_constant(value_type)"));
+            EXPECT_BATCH_EQ(b(), expected);
+        }
     }
 
     struct split
@@ -139,19 +150,27 @@ class constant_bool_batch_test : public testing::Test
                       [&i]() { return split::get(i++, size); });
         constexpr auto b =
             xsimd::make_batch_bool_constant<value_type, split, size>();
-        EXPECT_BATCH_EQ(b(), expected)
-            << print_function_name("batch_bool_constant(value_type)");
+        {
+            INFO(print_function_name("batch_bool_constant(value_type)"));
+            EXPECT_BATCH_EQ(b(), expected);
+        }
     }
 };
 
-TYPED_TEST_SUITE(constant_bool_batch_test, batch_int_types, simd_test_names);
 
-TYPED_TEST(constant_bool_batch_test, init_from_generator)
+TEST_CASE_TEMPLATE_DEFINE("init_from_generator", TypeParam, constant_bool_batch_test_init_from_generator)
 {
-    this->test_init_from_generator();
+    constant_bool_batch_test<TypeParam> tester;
+    tester.test_init_from_generator();
 }
 
-TYPED_TEST(constant_bool_batch_test, init_from_generator_split)
+TEST_CASE_TEMPLATE_DEFINE("init_from_generator_split", TypeParam, constant_bool_batch_test_init_from_generator_split)
 {
-    this->test_init_from_generator_split();
+    constant_bool_batch_test<TypeParam> tester;
+    tester.test_init_from_generator_split();
 }
+TEST_CASE_TEMPLATE_APPLY(constant_batch_test_init_from_generator, batch_int_types);
+TEST_CASE_TEMPLATE_APPLY(constant_batch_test_init_from_generator_arange, batch_int_types);
+TEST_CASE_TEMPLATE_APPLY(constant_batch_test_init_from_constant, batch_int_types);
+TEST_CASE_TEMPLATE_APPLY(constant_bool_batch_test_init_from_generator, batch_int_types);
+TEST_CASE_TEMPLATE_APPLY(constant_bool_batch_test_init_from_generator_split, batch_int_types);

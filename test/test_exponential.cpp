@@ -13,7 +13,7 @@
 template <class B>
 class exponential_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using value_type = typename B::value_type;
@@ -54,7 +54,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("exp");
+            {
+                INFO(print_function_name("exp"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // exp2
         {
@@ -68,7 +71,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("exp2");
+            {
+                INFO(print_function_name("exp2"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // expm1
         {
@@ -82,7 +88,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("expm1");
+            {
+                INFO(print_function_name("expm1"));
+                EXPECT_EQ(diff, 0);
+            }
         }
     }
 
@@ -100,7 +109,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("log");
+            {
+                INFO(print_function_name("log"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // log2
         {
@@ -114,7 +126,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("log2");
+            {
+                INFO(print_function_name("log2"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // log10
         {
@@ -128,7 +143,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("log10");
+            {
+                INFO(print_function_name("log10"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // log1p
         {
@@ -142,19 +160,25 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("log1p");
+            {
+                INFO(print_function_name("log1p"));
+                EXPECT_EQ(diff, 0);
+            }
         }
     }
 };
 
-TYPED_TEST_SUITE(exponential_test, batch_float_types, simd_test_names);
 
-TYPED_TEST(exponential_test, exp)
+TEST_CASE_TEMPLATE_DEFINE("exp", TypeParam, exponential_test_exp)
 {
-    this->test_exponential_functions();
+    exponential_test<TypeParam> tester;
+    tester.test_exponential_functions();
 }
 
-TYPED_TEST(exponential_test, log)
+TEST_CASE_TEMPLATE_DEFINE("log", TypeParam, exponential_test_log)
 {
-    this->test_log_functions();
+    exponential_test<TypeParam> tester;
+    tester.test_log_functions();
 }
+TEST_CASE_TEMPLATE_APPLY(exponential_test_exp, batch_float_types);
+TEST_CASE_TEMPLATE_APPLY(exponential_test_log, batch_float_types);

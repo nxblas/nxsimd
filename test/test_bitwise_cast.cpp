@@ -13,7 +13,7 @@
 template <class CP>
 class bitwise_cast_test : public testing::Test
 {
-protected:
+public:
 
     static constexpr size_t N = CP::size;
     static constexpr size_t A = CP::alignment;
@@ -94,12 +94,18 @@ protected:
         {
             int32_batch i32bres = xsimd::bitwise_cast<int32_batch>(f_input());
             i32bres.store_aligned(i32vres.data());
-            EXPECT_VECTOR_EQ(i32vres, ftoi32_res) << print_function_name("to_int32(float)");
+            {
+                INFO(print_function_name("to_int32(float)"));
+                EXPECT_VECTOR_EQ(i32vres, ftoi32_res);
+            }
         }
         {
             int32_batch i32bres = xsimd::bitwise_cast<int32_batch>(d_input());
             i32bres.store_aligned(i32vres.data());
-            EXPECT_VECTOR_EQ(i32vres, dtoi32_res) << print_function_name("to_int32(double)");
+            {
+                INFO(print_function_name("to_int32(double)"));
+                EXPECT_VECTOR_EQ(i32vres, dtoi32_res);
+            }
         }
     }
 
@@ -109,12 +115,18 @@ protected:
         {
             int64_batch i64bres = xsimd::bitwise_cast<int64_batch>(f_input());
             i64bres.store_aligned(i64vres.data());
-            EXPECT_VECTOR_EQ(i64vres, ftoi64_res) << print_function_name("to_int64(float)");
+            {
+                INFO(print_function_name("to_int64(float)"));
+                EXPECT_VECTOR_EQ(i64vres, ftoi64_res);
+            }
         }
         {
             int64_batch i64bres = xsimd::bitwise_cast<int64_batch>(d_input());
             i64bres.store_aligned(i64vres.data());
-            EXPECT_VECTOR_EQ(i64vres, dtoi64_res) << print_function_name("to_int64(double)");
+            {
+                INFO(print_function_name("to_int64(double)"));
+                EXPECT_VECTOR_EQ(i64vres, dtoi64_res);
+            }
         }
     }
 
@@ -124,17 +136,26 @@ protected:
         {
             float_batch fbres = xsimd::bitwise_cast<float_batch>(i32_input());
             fbres.store_aligned(fvres.data());
-            EXPECT_VECTOR_EQ(fvres, i32tof_res) << print_function_name("to_float(int32_t)");
+            {
+                INFO(print_function_name("to_float(int32_t)"));
+                EXPECT_VECTOR_EQ(fvres, i32tof_res);
+            }
         }
         {
             float_batch fbres = xsimd::bitwise_cast<float_batch>(i64_input());
             fbres.store_aligned(fvres.data());
-            EXPECT_VECTOR_EQ(fvres, i64tof_res) << print_function_name("to_float(int64_t)");
+            {
+                INFO(print_function_name("to_float(int64_t)"));
+                EXPECT_VECTOR_EQ(fvres, i64tof_res);
+            }
         }
         {
             float_batch fbres = xsimd::bitwise_cast<float_batch>(d_input());
             fbres.store_aligned(fvres.data());
-            EXPECT_VECTOR_EQ(fvres, dtof_res) << print_function_name("to_float(double)");
+            {
+                INFO(print_function_name("to_float(double)"));
+                EXPECT_VECTOR_EQ(fvres, dtof_res);
+            }
         }
     }
 
@@ -144,17 +165,26 @@ protected:
         {
             double_batch dbres = xsimd::bitwise_cast<double_batch>(i32_input());
             dbres.store_aligned(dvres.data());
-            EXPECT_VECTOR_EQ(dvres, i32tod_res) << print_function_name("to_double(int32_t)");
+            {
+                INFO(print_function_name("to_double(int32_t)"));
+                EXPECT_VECTOR_EQ(dvres, i32tod_res);
+            }
         }
         {
             double_batch dbres = xsimd::bitwise_cast<double_batch>(i64_input());
             dbres.store_aligned(dvres.data());
-            EXPECT_VECTOR_EQ(dvres, i64tod_res) << print_function_name("to_double(int64_t)");
+            {
+                INFO(print_function_name("to_double(int64_t)"));
+                EXPECT_VECTOR_EQ(dvres, i64tod_res);
+            }
         }
         {
             double_batch dbres = xsimd::bitwise_cast<double_batch>(f_input());
             dbres.store_aligned(dvres.data());
-            EXPECT_VECTOR_EQ(dvres, ftod_res) << print_function_name("to_double(float)");
+            {
+                INFO(print_function_name("to_double(float)"));
+                EXPECT_VECTOR_EQ(dvres, ftod_res);
+            }
         }
     }
 
@@ -189,24 +219,31 @@ private:
     };
 };
 
-TYPED_TEST_SUITE(bitwise_cast_test, conversion_types, conversion_test_names);
 
-TYPED_TEST(bitwise_cast_test, to_int32)
+TEST_CASE_TEMPLATE_DEFINE("to_int32", TypeParam, bitwise_cast_test_to_int32)
 {
-    this->test_to_int32();
+    bitwise_cast_test<TypeParam> tester;
+    tester.test_to_int32();
 }
 
-TYPED_TEST(bitwise_cast_test, to_int64)
+TEST_CASE_TEMPLATE_DEFINE("to_int64", TypeParam, bitwise_cast_test_to_int64)
 {
-    this->test_to_int64();
+    bitwise_cast_test<TypeParam> tester;
+    tester.test_to_int64();
 }
 
-TYPED_TEST(bitwise_cast_test, to_float)
+TEST_CASE_TEMPLATE_DEFINE("to_float", TypeParam, bitwise_cast_test_to_float)
 {
-    this->test_to_float();
+    bitwise_cast_test<TypeParam> tester;
+    tester.test_to_float();
 }
 
-TYPED_TEST(bitwise_cast_test, to_double)
+TEST_CASE_TEMPLATE_DEFINE("to_double", TypeParam, bitwise_cast_test_to_double)
 {
-    this->test_to_double();
+    bitwise_cast_test<TypeParam> tester;
+    tester.test_to_double();
 }
+TEST_CASE_TEMPLATE_APPLY(bitwise_cast_test_to_int32, conversion_types);
+TEST_CASE_TEMPLATE_APPLY(bitwise_cast_test_to_int64, conversion_types);
+TEST_CASE_TEMPLATE_APPLY(bitwise_cast_test_to_float, conversion_types);
+TEST_CASE_TEMPLATE_APPLY(bitwise_cast_test_to_double, conversion_types);

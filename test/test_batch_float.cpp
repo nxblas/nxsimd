@@ -13,7 +13,7 @@
 template <class B>
 class batch_float_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using value_type = typename B::value_type;
@@ -39,13 +39,12 @@ protected:
 
     void test_sqrt() const
     {
-        // sqrt
         {
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(),
                             [](const value_type& l) { return std::sqrt(l); });
             batch_type res = sqrt(batch_lhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("sqrt");
+            EXPECT_BATCH_EQ_MESSAGE(res, expected,  print_function_name("sqrt"));
         }
     }
 
@@ -74,7 +73,7 @@ protected:
             }
         }
         auto res = haddp(haddp_input);
-        EXPECT_BATCH_EQ(res, expected) << print_function_name("haddp");
+        EXPECT_BATCH_EQ_MESSAGE(res, expected, print_function_name("haddp"));
     }
 
 private:
@@ -91,15 +90,18 @@ private:
 };
 
 
-TYPED_TEST_SUITE(batch_float_test, batch_float_types, simd_test_names);
 
-TYPED_TEST(batch_float_test, sqrt)
+TEST_CASE_TEMPLATE_DEFINE("sqrt", TypeParam, batch_float_test_sqrt)
 {
-    this->test_sqrt();
+    batch_float_test<TypeParam> tester;
+    tester.test_sqrt();
 }
 
-TYPED_TEST(batch_float_test, haddp)
+TEST_CASE_TEMPLATE_DEFINE("haddp", TypeParam, batch_float_test_haddp)
 {
-    this->test_haddp();
+    batch_float_test<TypeParam> tester;
+    tester.test_haddp();
 }
 
+TEST_CASE_TEMPLATE_APPLY(batch_float_test_sqrt, batch_float_types);
+TEST_CASE_TEMPLATE_APPLY(batch_float_test_haddp, batch_float_types);

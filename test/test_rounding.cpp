@@ -13,7 +13,7 @@
 template <class B>
 class rounding_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using value_type = typename B::value_type;
@@ -55,7 +55,10 @@ protected:
                 res[i] = std::ceil(input[i]);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("ceil");
+            {
+                INFO(print_function_name("ceil"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // floor
         {
@@ -73,7 +76,10 @@ protected:
                 res[i] = std::floor(input[i]);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("floor");
+            {
+                INFO(print_function_name("floor"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // trunc
         {
@@ -91,7 +97,10 @@ protected:
                 res[i] = std::trunc(input[i]);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("trunc");
+            {
+                INFO(print_function_name("trunc"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // round
         {
@@ -109,7 +118,10 @@ protected:
                 res[i] = std::round(input[i]);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("round");
+            {
+                INFO(print_function_name("round"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // nearbyint
         {
@@ -127,7 +139,10 @@ protected:
                 res[i] = std::nearbyint(input[i]);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("nearbyint");
+            {
+                INFO(print_function_name("nearbyint"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // rint
         {
@@ -145,15 +160,19 @@ protected:
                 res[i] = std::rint(input[i]);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("rint");
+            {
+                INFO(print_function_name("rint"));
+                EXPECT_EQ(diff, 0);
+            }
         }
     }
 };
 
-TYPED_TEST_SUITE(rounding_test, batch_float_types, simd_test_names);
 
-TYPED_TEST(rounding_test, rounding)
+TEST_CASE_TEMPLATE_DEFINE("rounding", TypeParam, rounding_test_rounding)
 {
-    this->test_rounding_functions();
+    rounding_test<TypeParam> tester;
+    tester.test_rounding_functions();
 }
 
+TEST_CASE_TEMPLATE_APPLY(rounding_test_rounding, batch_float_types);

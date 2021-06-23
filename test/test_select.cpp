@@ -13,7 +13,7 @@
 template <class B>
 class select_test : public testing::Test
 {
-  protected:
+  public:
     using batch_type = B;
     using value_type = typename B::value_type;
     static constexpr size_t size = B::size;
@@ -57,7 +57,10 @@ class select_test : public testing::Test
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("pow");
+        {
+            INFO(print_function_name("pow"));
+            EXPECT_EQ(diff, 0);
+        }
     }
     struct pattern
     {
@@ -83,11 +86,23 @@ class select_test : public testing::Test
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("pow");
+        {
+            INFO(print_function_name("pow"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 };
 
-TYPED_TEST_SUITE(select_test, batch_types, simd_test_names);
 
-TYPED_TEST(select_test, select_dynamic) { this->test_select_dynamic(); }
-TYPED_TEST(select_test, select_static) { this->test_select_static(); }
+TEST_CASE_TEMPLATE_DEFINE("select_dynamic", TypeParam, select_test_select_dynamic) 
+{
+    select_test<TypeParam> tester;
+    tester.test_select_dynamic();
+}
+TEST_CASE_TEMPLATE_DEFINE("select_static", TypeParam, select_test_select_static) 
+{
+    select_test<TypeParam> tester;
+    tester.test_select_static();
+}
+TEST_CASE_TEMPLATE_APPLY(select_test_select_dynamic, batch_types);
+TEST_CASE_TEMPLATE_APPLY(select_test_select_static, batch_types);

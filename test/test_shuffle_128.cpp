@@ -8,6 +8,8 @@
  ****************************************************************************/
 #include "test_utils.hpp"
 
+#include <iostream>
+
 namespace xsimd
 {
     template <typename T, std::size_t N>
@@ -50,7 +52,7 @@ namespace xsimd
 template <class B>
 class shuffle_128_test : public testing::Test
 {
-  protected:
+  public:
     using batch_type = B;
     using value_type = typename B::value_type;
     static constexpr size_t size = B::size;
@@ -79,17 +81,24 @@ class shuffle_128_test : public testing::Test
         if ((sizeof(value_type) * size) == 16)
         {
             b_res_lo = xsimd::zip_lo(b_lhs, b_rhs);
-            EXPECT_BATCH_EQ(b_res_lo, b_exp_lo) << print_function_name("shuffle-128 low test");
+            {
+                INFO(print_function_name("shuffle-128 low test"));
+                EXPECT_BATCH_EQ(b_res_lo, b_exp_lo);
+            }
 
             b_res_hi = xsimd::zip_hi(b_lhs, b_rhs);
-            EXPECT_BATCH_EQ(b_res_hi, b_exp_hi) << print_function_name("shuffle-128 high test");
+            {
+                INFO(print_function_name("shuffle-128 high test"));
+                EXPECT_BATCH_EQ(b_res_hi, b_exp_hi);
+            }
         }
     }
 };
 
-TYPED_TEST_SUITE(shuffle_128_test, batch_types, simd_test_names);
 
-TYPED_TEST(shuffle_128_test, shuffle_128_low_high)
+TEST_CASE_TEMPLATE_DEFINE("shuffle_128_low_high", TypeParam, shuffle_128_test_shuffle_128_low_high)
 {
-    this->shuffle_128_low_high();
+    shuffle_128_test<TypeParam> tester;
+    tester.shuffle_128_low_high();
 }
+TEST_CASE_TEMPLATE_APPLY(shuffle_128_test_shuffle_128_low_high, batch_types);

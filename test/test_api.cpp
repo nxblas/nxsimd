@@ -15,7 +15,7 @@
 template <class B>
 class xsimd_api_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using value_type = typename B::value_type;
@@ -112,10 +112,10 @@ private:
         std::copy(v.cbegin(), v.cend(), expected.begin());
 
         b = xsimd::load_simd<src_value_type, value_type>(v.data(), xsimd::unaligned_mode());
-        EXPECT_BATCH_EQ(b, expected) << print_function_name(name + " unaligned");
+        EXPECT_BATCH_EQ_MESSAGE(b, expected,  print_function_name(name + " unaligned"));
         
         b = xsimd::load_simd<src_value_type, value_type>(v.data(), xsimd::aligned_mode());
-        EXPECT_BATCH_EQ(b, expected) << print_function_name(name + " aligned");
+        EXPECT_BATCH_EQ_MESSAGE(b, expected, print_function_name(name + " aligned"));
     }
     
     template <class V>
@@ -126,10 +126,10 @@ private:
         V res(size);
 
         xsimd::store_simd<src_value_type, value_type>(res.data(), b, xsimd::unaligned_mode());
-        EXPECT_VECTOR_EQ(res, v) << print_function_name(name + " unaligned");
+        EXPECT_VECTOR_EQ_MESSAGE(res, v, print_function_name(name + " unaligned"));
         
         xsimd::store_simd<src_value_type, value_type>(res.data(), b, xsimd::aligned_mode());
-        EXPECT_VECTOR_EQ(res, v) << print_function_name(name + " aligned");
+        EXPECT_VECTOR_EQ_MESSAGE(res, v, print_function_name(name + " aligned"));
     }
 
     template <class T>
@@ -138,7 +138,7 @@ private:
         T v = T(1);
         batch_type expected(v);
         batch_type res = xsimd::set_simd<T, value_type>(v);
-        EXPECT_BATCH_EQ(res, expected) << print_function_name(name);
+        EXPECT_BATCH_EQ_MESSAGE(res, expected, print_function_name(name));
     }
 
     template <class V>
@@ -212,21 +212,29 @@ using xsimd_api_types = testing::Types<
 #endif
                         >;
 
-TYPED_TEST_SUITE(xsimd_api_test, xsimd_api_types, simd_test_names);
 
-TYPED_TEST(xsimd_api_test, load)
+TEST_SUITE("xsimd_api_test")
 {
-    this->test_load();
-}
+    TEST_CASE_TEMPLATE_DEFINE("load", TypeParam, xsimd_api_test_load)
+    {
+        xsimd_api_test<TypeParam> api_tester;
+        api_tester.test_load();
+    }
+    TEST_CASE_TEMPLATE_APPLY(xsimd_api_test_load, xsimd_api_types);
 
-TYPED_TEST(xsimd_api_test, store)
-{
-    this->test_store();
-}
+    TEST_CASE_TEMPLATE_DEFINE("store", TypeParam, xsimd_api_test_store)
+    {
+        xsimd_api_test<TypeParam> api_tester;
+        api_tester.test_store();
+    }
+    TEST_CASE_TEMPLATE_APPLY(xsimd_api_test_store, xsimd_api_types);
 
-#ifdef XSIMD_BATCH_DOUBLE_SIZE
-TYPED_TEST(xsimd_api_test, set)
-{
-    this->test_set();
+    #ifdef XSIMD_BATCH_DOUBLE_SIZE
+    TEST_CASE_TEMPLATE_DEFINE("set", TypeParam, xsimd_api_test_store_set)
+    {
+        xsimd_api_test<TypeParam> api_tester;
+        api_tester.test_set();
+    }
+    TEST_CASE_TEMPLATE_APPLY(xsimd_api_test_store_set, xsimd_api_types);
+    #endif
 }
-#endif

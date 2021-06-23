@@ -13,7 +13,7 @@
 template <class B>
 class power_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using value_type = typename B::value_type;
@@ -55,7 +55,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("pow");
+            {
+                INFO(print_function_name("pow"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // ipow
         {
@@ -70,7 +73,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("ipow");
+            {
+                INFO(print_function_name("ipow"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // hypot
         {
@@ -85,7 +91,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("hypot");
+            {
+                INFO(print_function_name("hypot"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // cbrt
         {
@@ -99,15 +108,19 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("cbrt");
+            {
+                INFO(print_function_name("cbrt"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // hypot
     }
 };
 
-TYPED_TEST_SUITE(power_test, batch_float_types, simd_test_names);
 
-TYPED_TEST(power_test, power)
+TEST_CASE_TEMPLATE_DEFINE("power", TypeParam, power_test_power)
 {
-    this->test_power_functions();
+    power_test<TypeParam> tester;
+    tester.test_power_functions();
 }
+TEST_CASE_TEMPLATE_APPLY(power_test_power, batch_float_types);

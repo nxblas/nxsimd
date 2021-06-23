@@ -13,7 +13,7 @@
 template <class CP>
 class conversion_test : public testing::Test
 {
-protected:
+public:
 
     static constexpr size_t N = CP::size;
     static constexpr size_t A = CP::alignment;
@@ -70,12 +70,18 @@ protected:
         {
             int32_batch fbres = to_int(fpos);
             fbres.store_aligned(fvres.data());
-            EXPECT_VECTOR_EQ(fvres, fposres) << print_function_name("to_int(positive float)");
+            {
+                INFO(print_function_name("to_int(positive float)"));
+                EXPECT_VECTOR_EQ(fvres, fposres);
+            }
         }
         {
             int32_batch fbres = to_int(fneg);
             fbres.store_aligned(fvres.data());
-            EXPECT_VECTOR_EQ(fvres, fnegres) << print_function_name("to_int(negative float)");
+            {
+                INFO(print_function_name("to_int(negative float)"));
+                EXPECT_VECTOR_EQ(fvres, fnegres);
+            }
         }
     }
 
@@ -86,12 +92,18 @@ protected:
         {
             int64_batch dbres = to_int(dpos);
             dbres.store_aligned(dvres.data());
-            EXPECT_VECTOR_EQ(dvres, dposres) << print_function_name("to_int(positive double)");
+            {
+                INFO(print_function_name("to_int(positive double)"));
+                EXPECT_VECTOR_EQ(dvres, dposres);
+            }
         }
         {
             int64_batch dbres = to_int(dneg);
             dbres.store_aligned(dvres.data());
-            EXPECT_VECTOR_EQ(dvres, dnegres) << print_function_name("to_int(negative double)");
+            {
+                INFO(print_function_name("to_int(negative double)"));
+                EXPECT_VECTOR_EQ(dvres, dnegres);
+            }
         }
     }
 
@@ -102,12 +114,18 @@ protected:
         {
             float_batch i32bres = to_float(i32pos);
             i32bres.store_aligned(i32vres.data());
-            EXPECT_VECTOR_EQ(i32vres, i32posres) << print_function_name("to_float(positive int32)");
+            {
+                INFO(print_function_name("to_float(positive int32)"));
+                EXPECT_VECTOR_EQ(i32vres, i32posres);
+            }
         }
         {
             float_batch i32bres = to_float(i32neg);
             i32bres.store_aligned(i32vres.data());
-            EXPECT_VECTOR_EQ(i32vres, i32negres) << print_function_name("to_float(negative int32)");
+            {
+                INFO(print_function_name("to_float(negative int32)"));
+                EXPECT_VECTOR_EQ(i32vres, i32negres);
+            }
         }
     }
 
@@ -118,12 +136,18 @@ protected:
         {
             double_batch i64bres = to_float(i64pos);
             i64bres.store_aligned(i64vres.data());
-            EXPECT_VECTOR_EQ(i64vres, i64posres) << print_function_name("to_float(positive int64)");
+            {
+                INFO(print_function_name("to_float(positive int64)"));
+                EXPECT_VECTOR_EQ(i64vres, i64posres);
+            }
         }
         {
             double_batch i64bres = to_float(i64neg);
             i64bres.store_aligned(i64vres.data());
-            EXPECT_VECTOR_EQ(i64vres, i64negres) << print_function_name("to_float(negative int64)");
+            {
+                INFO(print_function_name("to_float(negative int64)"));
+                EXPECT_VECTOR_EQ(i64vres, i64negres);
+            }
         }
     }
 
@@ -135,46 +159,64 @@ protected:
             uint16_batch ui16casting = u8_to_u16(ui8tmp);
             uint8_batch ui8casting = u16_to_u8(ui16casting);
             ui8casting.store_aligned(ui8vres.data());
-            EXPECT_VECTOR_EQ(ui8vres, ui8res) << print_function_name("u8_to_16");
+            {
+                INFO(print_function_name("u8_to_16"));
+                EXPECT_VECTOR_EQ(ui8vres, ui8res);
+            }
         }
         {
             uint32_batch ui32casting = u8_to_u32(ui8tmp);
             uint8_batch ui8casting = u32_to_u8(ui32casting);
             ui8casting.store_aligned(ui8vres.data());
-            EXPECT_VECTOR_EQ(ui8vres, ui8res) << print_function_name("u8_to_32");
+            {
+                INFO(print_function_name("u8_to_32"));
+                EXPECT_VECTOR_EQ(ui8vres, ui8res);
+            }
         }
         {
             uint64_batch ui64casting = u8_to_u64(ui8tmp);
             uint8_batch ui8casting = u64_to_u8(ui64casting);
             ui8casting.store_aligned(ui8vres.data());
-            EXPECT_VECTOR_EQ(ui8vres, ui8res) << print_function_name("u8_to_64");
+            {
+                INFO(print_function_name("u8_to_64"));
+                EXPECT_VECTOR_EQ(ui8vres, ui8res);
+            }
         }
     }
 };
 
-TYPED_TEST_SUITE(conversion_test, conversion_types, conversion_test_names);
 
-TYPED_TEST(conversion_test, to_int32)
+TEST_CASE_TEMPLATE_DEFINE("to_int32", TypeParam, conversion_test_to_int32)
 {
-    this->test_to_int32();
+    conversion_test<TypeParam> tester;
+    tester.test_to_int32();
 }
 
-TYPED_TEST(conversion_test, to_int64)
+TEST_CASE_TEMPLATE_DEFINE("to_int64", TypeParam, conversion_test_to_int64)
 {
-    this->test_to_int64();
+    conversion_test<TypeParam> tester;
+    tester.test_to_int64();
 }
 
-TYPED_TEST(conversion_test, to_float)
+TEST_CASE_TEMPLATE_DEFINE("to_float", TypeParam, conversion_test_to_float)
 {
-    this->test_to_float();
+    conversion_test<TypeParam> tester;
+    tester.test_to_float();
 }
 
-TYPED_TEST(conversion_test, to_double)
+TEST_CASE_TEMPLATE_DEFINE("to_double", TypeParam, conversion_test_to_double)
 {
-    this->test_to_double();
+    conversion_test<TypeParam> tester;
+    tester.test_to_double();
 }
 
-TYPED_TEST(conversion_test, u8_casting)
+TEST_CASE_TEMPLATE_DEFINE("u8_casting", TypeParam, conversion_test_u8_casting)
 {
-    this->test_u8_casting();
+    conversion_test<TypeParam> tester;
+    tester.test_u8_casting();
 }
+TEST_CASE_TEMPLATE_APPLY(conversion_test_to_int32, conversion_types);
+TEST_CASE_TEMPLATE_APPLY(conversion_test_to_int64, conversion_types);
+TEST_CASE_TEMPLATE_APPLY(conversion_test_to_float, conversion_types);
+TEST_CASE_TEMPLATE_APPLY(conversion_test_to_double, conversion_types);
+TEST_CASE_TEMPLATE_APPLY(conversion_test_u8_casting, conversion_types);

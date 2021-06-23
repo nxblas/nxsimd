@@ -11,7 +11,7 @@
 #include <vector>
 #include <type_traits>
 
-#include "gtest/gtest.h"
+#include "test_utils.hpp"
 
 #include "xsimd/config/xsimd_instruction_set.hpp"
 

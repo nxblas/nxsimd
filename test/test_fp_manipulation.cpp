@@ -13,7 +13,7 @@
 template <class B>
 class fp_manipulation_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using value_type = typename B::value_type;
@@ -43,7 +43,10 @@ protected:
             std::transform(input.cbegin(), input.cend(), expected.begin(),
                             [this](const value_type& v) { return std::ldexp(v, exponent); });
             batch_type res = xsimd::ldexp(batch_input(), bexp);
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("ldexp");
+            {
+                INFO(print_function_name("ldexp"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // frexp
         {
@@ -51,7 +54,10 @@ protected:
             std::transform(input.cbegin(), input.cend(), expected.begin(),
                             [](const value_type& v) { int tmp; return std::frexp(v, &tmp); });
             batch_type res = xsimd::frexp(batch_input(), bexp);
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("frexp");
+            {
+                INFO(print_function_name("frexp"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
     }
 
@@ -64,10 +70,11 @@ private:
 };
 
 
-TYPED_TEST_SUITE(fp_manipulation_test, batch_float_types, simd_test_names);
 
-TYPED_TEST(fp_manipulation_test, fp_manipulations)
+TEST_CASE_TEMPLATE_DEFINE("fp_manipulations", TypeParam, fp_manipulation_test_fp_manipulations)
 {
-    this->test_fp_manipulations();
+    fp_manipulation_test<TypeParam> tester;
+    tester.test_fp_manipulations();
 }
 
+TEST_CASE_TEMPLATE_APPLY(fp_manipulation_test_fp_manipulations, batch_float_types);

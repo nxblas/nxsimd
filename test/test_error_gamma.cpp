@@ -13,7 +13,7 @@
 template <class B>
 class error_gamma_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using value_type = typename B::value_type;
@@ -57,7 +57,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("erf");
+            {
+                INFO(print_function_name("erf"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // erfc
         {
@@ -71,7 +74,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("erfc");
+            {
+                INFO(print_function_name("erfc"));
+                EXPECT_EQ(diff, 0);
+            }
         }
     }
 
@@ -89,7 +95,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("tgamma");
+            {
+                INFO(print_function_name("tgamma"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // tgamma (negative input)
         {
@@ -103,7 +112,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("tgamma (negative input)");
+            {
+                INFO(print_function_name("tgamma (negative input)"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // lgamma
         {
@@ -117,7 +129,10 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("lgamma");
+            {
+                INFO(print_function_name("lgamma"));
+                EXPECT_EQ(diff, 0);
+            }
         }
         // tgamma (negative input)
         {
@@ -131,20 +146,26 @@ protected:
                 detail::store_batch(out, res, i);
             }
             size_t diff = detail::get_nb_diff(res, expected);
-            EXPECT_EQ(diff, 0) << print_function_name("lgamma (negative input)");
+            {
+                INFO(print_function_name("lgamma (negative input)"));
+                EXPECT_EQ(diff, 0);
+            }
         }
     }
 };
 
-TYPED_TEST_SUITE(error_gamma_test, batch_float_types, simd_test_names);
 
-TYPED_TEST(error_gamma_test, error)
+TEST_CASE_TEMPLATE_DEFINE("error", TypeParam, error_gamma_test_error)
 {
-    this->test_error_functions();
+    error_gamma_test<TypeParam> tester;
+    tester.test_error_functions();
 }
 
-TYPED_TEST(error_gamma_test, gamma)
+TEST_CASE_TEMPLATE_DEFINE("gamma", TypeParam, error_gamma_test_gamma)
 {
-    this->test_gamma_functions();
+    error_gamma_test<TypeParam> tester;
+    tester.test_gamma_functions();
 }
 
+TEST_CASE_TEMPLATE_APPLY(error_gamma_test_error, batch_float_types);
+TEST_CASE_TEMPLATE_APPLY(error_gamma_test_gamma, batch_float_types);

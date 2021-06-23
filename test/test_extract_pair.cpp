@@ -8,6 +8,8 @@
  ****************************************************************************/
 #include "test_utils.hpp"
 
+#include <iostream>
+
 namespace xsimd
 {
     template <typename T, std::size_t N>
@@ -50,7 +52,7 @@ namespace xsimd
 template <class B>
 class extract_pair_test : public testing::Test
 {
-  protected:
+  public:
     using batch_type = B;
     using value_type = typename B::value_type;
     static constexpr size_t size = B::size;
@@ -77,14 +79,18 @@ class extract_pair_test : public testing::Test
         if ((sizeof(value_type) * size) == 16)
         {
             b_res = xsimd::extract_pair(b_lhs, b_rhs, 1);
-            EXPECT_BATCH_EQ(b_res, b_exped) << print_function_name("extract_pair 128 test");
+            {
+                INFO(print_function_name("extract_pair 128 test"));
+                EXPECT_BATCH_EQ(b_res, b_exped);
+            }
         }
     }
 };
 
-TYPED_TEST_SUITE(extract_pair_test, batch_types, simd_test_names);
 
-TYPED_TEST(extract_pair_test, extract_pair_128)
+TEST_CASE_TEMPLATE_DEFINE("extract_pair_128", TypeParam, extract_pair_test_extract_pair_128)
 {
-    this->extract_pair_128();
+    extract_pair_test<TypeParam> tester;
+    tester.extract_pair_128();
 }
+TEST_CASE_TEMPLATE_APPLY(extract_pair_test_extract_pair_128, batch_types);

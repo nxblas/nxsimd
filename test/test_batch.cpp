@@ -19,7 +19,7 @@ using namespace std::placeholders;
 template <class B>
 class batch_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using value_type = typename B::value_type;
@@ -42,13 +42,19 @@ protected:
         batch_type b;
         b.load_unaligned(lhs.data());
         b.store_unaligned(res.data());
-        EXPECT_EQ(res, lhs) << print_function_name("load_unaligned / store_unaligned");
+        {
+            INFO( print_function_name("load_unaligned / store_unaligned"));
+            EXPECT_EQ(res, lhs);
+        }
 
         alignas(xsimd::arch::default_::alignment) array_type arhs(this->rhs);
         alignas(xsimd::arch::default_::alignment) array_type ares;
         b.load_aligned(arhs.data());
         b.store_aligned(ares.data());
-        EXPECT_EQ(ares, rhs) << print_function_name("load_aligned / store_aligned");
+        {
+            INFO( print_function_name("load_aligned / store_aligned"));
+            EXPECT_EQ(ares, rhs);
+        }
     }
 
     void test_constructors() const
@@ -56,10 +62,17 @@ protected:
         array_type tmp;
         std::fill(tmp.begin(), tmp.end(), value_type(2));
         batch_type b0(2);
-        EXPECT_EQ(b0, tmp) << print_function_name("batch(value_type)");
+
+        {
+            INFO( print_function_name("batch(value_type)"));
+            EXPECT_EQ(b0, tmp);
+        }
 
         batch_type b1(lhs.data());
-        EXPECT_EQ(b1, lhs) << print_function_name("batch(value_type*)");
+        {
+            INFO( print_function_name("batch(value_type*)"));
+            EXPECT_EQ(b1, lhs);
+        }
     }
 
     void test_static_builders() const
@@ -69,20 +82,29 @@ protected:
             std::fill(expected.begin(), expected.end(), value_type(2));
 
             auto res = batch_type::broadcast(value_type(2));
-            EXPECT_EQ(res, expected) << print_function_name("batch::broadcast");
+            {
+                INFO( print_function_name("batch::broadcast"));
+                EXPECT_EQ(res, expected);
+            }
         }
         {
             array_type res;
             auto b = batch_type::from_unaligned(lhs.data());
             b.store_unaligned(res.data());
-            EXPECT_EQ(res, lhs) << print_function_name("batch::from_unaligned");
+            {
+                INFO( print_function_name("batch::from_unaligned"));
+                EXPECT_EQ(res, lhs);
+            }
         }
         {
             alignas(xsimd::arch::default_::alignment) array_type arhs(this->rhs);
             alignas(xsimd::arch::default_::alignment) array_type ares;
             auto b = batch_type::from_aligned(arhs.data());
             b.store_aligned(ares.data());
-            EXPECT_EQ(ares, rhs) << print_function_name("batch::from_aligned");
+            {
+                INFO( print_function_name("batch::from_aligned"));
+                EXPECT_EQ(ares, rhs);
+            }
         }
     }
 
@@ -91,7 +113,10 @@ protected:
         batch_type res = batch_lhs();
         for (size_t i = 0; i < size; ++i)
         {
-            EXPECT_EQ(res[i], lhs[i]) << print_function_name("operator[](") << i << ")";
+            {
+                INFO(print_function_name("operator[]("),i, ")");
+                EXPECT_EQ(res[i], lhs[i]);
+            }
         }
     }
 
@@ -101,80 +126,122 @@ protected:
         {
             array_type expected = lhs;
             batch_type res = +batch_lhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("+batch");
+            {
+                INFO(print_function_name("+batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // -batch
         {
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::negate<value_type>());
             batch_type res = -batch_lhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("-batch");
+            {
+                INFO(print_function_name("-batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch + batch
         {
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(), std::plus<value_type>());
             batch_type res = batch_lhs() + batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch + batch");
+            {
+                INFO(print_function_name("batch + batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch + scalar
         {
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::bind(std::plus<value_type>(), _1, scalar));
             batch_type lres = batch_lhs() + scalar;
-            EXPECT_BATCH_EQ(lres, expected) << print_function_name("batch + scalar");
+            {
+                INFO(print_function_name("batch + scalar"));
+                EXPECT_BATCH_EQ(lres, expected);
+            }
             batch_type rres = scalar + batch_lhs();
-            EXPECT_BATCH_EQ(rres, expected) << print_function_name("scalar + batch");
+            {
+                INFO(print_function_name("scalar + batch"));
+                EXPECT_BATCH_EQ(rres, expected);
+            }
         }
         // batch - batch
         {
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(), std::minus<value_type>());
             batch_type res = batch_lhs() - batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch - batch");
+            {
+                INFO(print_function_name("batch - batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch - scalar
         {
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::bind(std::minus<value_type>(), _1, scalar));
             batch_type lres = batch_lhs() - scalar;
-            EXPECT_BATCH_EQ(lres, expected) << print_function_name("batch - scalar");
+            {
+                INFO(print_function_name("batch - scalar"));
+                EXPECT_BATCH_EQ(lres, expected);
+            }
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::bind(std::minus<value_type>(), scalar, _1));
             batch_type rres = scalar - batch_lhs();
-            EXPECT_BATCH_EQ(rres, expected) << print_function_name("scalar - batch");
+            {
+                INFO(print_function_name("scalar - batch"));
+                EXPECT_BATCH_EQ(rres, expected);
+            }
         }
         // batch * batch
         {
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(), std::multiplies<value_type>());
             batch_type res = batch_lhs() * batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch * batch");
+            {
+                INFO(print_function_name("batch * batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch * scalar
         {
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::bind(std::multiplies<value_type>(), _1, scalar));
             batch_type lres = batch_lhs() * scalar;
-            EXPECT_BATCH_EQ(lres, expected) << print_function_name("batch * scalar");
+            {
+                INFO(print_function_name("batch * scalar"));
+                EXPECT_BATCH_EQ(lres, expected);
+            }
             batch_type rres = scalar * batch_lhs();
-            EXPECT_BATCH_EQ(rres, expected) << print_function_name("scalar * batch");
+            {
+                INFO(print_function_name("scalar * batch"));
+                EXPECT_BATCH_EQ(rres, expected);
+            }
         }
         // batch / batch
         {
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(), std::divides<value_type>());
             batch_type res = batch_lhs() / batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch / batch");
+            {
+                INFO(print_function_name("batch / batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch / scalar
         {
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::bind(std::divides<value_type>(), _1, scalar));
             batch_type lres = batch_lhs() / scalar;
-            EXPECT_BATCH_EQ(lres, expected) << print_function_name("batch / scalar");
+            {
+                INFO(print_function_name("batch / scalar"));
+                EXPECT_BATCH_EQ(lres, expected);
+            }
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::bind(std::divides<value_type>(), scalar, _1));
             batch_type rres = scalar / batch_lhs();
-            EXPECT_BATCH_EQ(rres, expected) << print_function_name("scalar / batch");
+            {
+                INFO(print_function_name("scalar / batch"));
+                EXPECT_BATCH_EQ(rres, expected);
+            }
         }
     }
 
@@ -185,33 +252,51 @@ protected:
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(), xsimd::sadd<value_type>);
             batch_type res = xsimd::sadd(batch_lhs(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("sadd(batch, batch)");
+            {
+                INFO(print_function_name("sadd(batch, batch)"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch + scalar
         {
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::bind(xsimd::sadd<value_type>, _1, scalar));
             batch_type lres = xsimd::sadd(batch_lhs(), scalar);
-            EXPECT_BATCH_EQ(lres, expected) << print_function_name("sadd(batch, scalar)");
+            {
+                INFO(print_function_name("sadd(batch, scalar)"));
+                EXPECT_BATCH_EQ(lres, expected);
+            }
             batch_type rres = xsimd::sadd(scalar, batch_lhs());
-            EXPECT_BATCH_EQ(rres, expected) << print_function_name("sadd(scalar, batch)");
+            {
+                INFO(print_function_name("sadd(scalar, batch)"));
+                EXPECT_BATCH_EQ(rres, expected);
+            }
         }
         // batch - batch
         {
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(), xsimd::ssub<value_type>);
             batch_type res = xsimd::ssub(batch_lhs(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("ssub(batch, batch)");
+            {
+                INFO(print_function_name("ssub(batch, batch)"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch - scalar
         {
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::bind(xsimd::ssub<value_type>, _1, scalar));
             batch_type lres = xsimd::ssub(batch_lhs(), scalar);
-            EXPECT_BATCH_EQ(lres, expected) << print_function_name("ssub(batch, scalar)");
+            {
+                INFO(print_function_name("ssub(batch, scalar)"));
+                EXPECT_BATCH_EQ(lres, expected);
+            }
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::bind(xsimd::ssub<value_type>, scalar, _1));
             batch_type rres = xsimd::ssub(scalar, batch_lhs());
-            EXPECT_BATCH_EQ(rres, expected) << print_function_name("ssub(scalar, batch)");
+            {
+                INFO(print_function_name("ssub(scalar, batch)"));
+                EXPECT_BATCH_EQ(rres, expected);
+            }
         }
     }
 
@@ -223,7 +308,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(), std::plus<value_type>());
             batch_type res = batch_lhs();
             res += batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch += batch");
+            {
+                INFO(print_function_name("batch += batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch += scalar
         {
@@ -231,7 +319,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::bind(std::plus<value_type>(), _1, scalar));
             batch_type res = batch_lhs(); 
             res += scalar;
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch += scalar");
+            {
+                INFO(print_function_name("batch += scalar"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch -= batch
         {
@@ -239,7 +330,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(), std::minus<value_type>());
             batch_type res = batch_lhs();
             res -= batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch -= batch");
+            {
+                INFO(print_function_name("batch -= batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch -= scalar
         {
@@ -247,7 +341,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::bind(std::minus<value_type>(), _1, scalar));
             batch_type res = batch_lhs();
             res -= scalar;
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch -= scalar");
+            {
+                INFO(print_function_name("batch -= scalar"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch *= batch
         {
@@ -255,7 +352,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(), std::multiplies<value_type>());
             batch_type res = batch_lhs();
             res *= batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch *= batch");
+            {
+                INFO(print_function_name("batch *= batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch *= scalar
         {
@@ -263,7 +363,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::bind(std::multiplies<value_type>(), _1, scalar));
             batch_type res = batch_lhs();
             res *= scalar;
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch *= scalar");
+            {
+                INFO(print_function_name("batch *= scalar"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch /= batch
         {
@@ -271,7 +374,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(), std::divides<value_type>());
             batch_type res = batch_lhs();
             res /= batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch /= batch");
+            {
+                INFO(print_function_name("batch /= batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch /= scalar
         {
@@ -279,7 +385,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(), std::bind(std::divides<value_type>(), _1, scalar));
             batch_type res = batch_lhs();
             res /= scalar;
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch /= scalar");
+            {
+                INFO(print_function_name("batch /= scalar"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
     }
 
@@ -291,7 +400,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return l == r; });
             auto res = batch_lhs() == batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch == batch");
+            {
+                INFO(print_function_name("batch == batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch == scalar
         {
@@ -299,7 +411,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(),
                             [this](const value_type& l) { return l == scalar; });
             auto res = batch_lhs() == scalar;
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch == scalar");
+            {
+                INFO(print_function_name("batch == scalar"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch != batch
         {
@@ -307,7 +422,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return l != r; });
             auto res = batch_lhs() != batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch != batch");
+            {
+                INFO(print_function_name("batch != batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch != scalar
         {
@@ -315,7 +433,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(),
                             [this](const value_type& l) { return l != scalar; });
             auto res = batch_lhs() != scalar;
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch != scalar");
+            {
+                INFO(print_function_name("batch != scalar"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch < batch
         {
@@ -323,7 +444,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return l < r; });
             auto res = batch_lhs() < batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch < batch");
+            {
+                INFO(print_function_name("batch < batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch < scalar
         {
@@ -331,7 +455,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(),
                             [this](const value_type& l) { return l < scalar; });
             auto res = batch_lhs() < scalar;
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch < scalar");
+            {
+                INFO(print_function_name("batch < scalar"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch <= batch
         {
@@ -339,7 +466,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return l <= r; });
             auto res = batch_lhs() <= batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch <= batch");
+            {
+                INFO(print_function_name("batch <= batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch <= scalar
         {
@@ -347,7 +477,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(),
                             [this](const value_type& l) { return l <= scalar; });
             auto res = batch_lhs() <= scalar;
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch <= scalar");
+            {
+                INFO(print_function_name("batch <= scalar"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch > batch
         {
@@ -355,7 +488,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return l > r; });
             auto res = batch_lhs() > batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch > batch");
+            {
+                INFO(print_function_name("batch > batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch > scalar
         {
@@ -363,7 +499,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(),
                             [this](const value_type& l) { return l > scalar; });
             auto res = batch_lhs() > scalar;
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch > scalar");
+            {
+                INFO(print_function_name("batch > scalar"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch >= batch
         {
@@ -371,7 +510,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return l >= r; });
             auto res = batch_lhs() >= batch_rhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch >= batch");
+            {
+                INFO(print_function_name("batch >= batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch >= scalar
         {
@@ -379,7 +521,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(),
                             [this](const value_type& l) { return l >= scalar; });
             auto res = batch_lhs() >= scalar;
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch >= scalar");
+            {
+                INFO(print_function_name("batch >= scalar"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
     }
 
@@ -391,7 +536,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                            [](const value_type& l, const value_type& r) { return std::min(l, r); });
             batch_type res = min(batch_lhs(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("min");
+            {
+                INFO(print_function_name("min"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // min limit case
         {
@@ -399,7 +547,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                            [](const value_type& , const value_type& r) { return std::min(std::numeric_limits<value_type>::min(), r); });
             batch_type res = xsimd::min(batch_type(std::numeric_limits<value_type>::min()), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("min limit");
+            {
+                INFO(print_function_name("min limit"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // fmin
         {
@@ -407,7 +558,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                            [](const value_type& l, const value_type& r) { return std::fmin(l, r); });
             batch_type res = min(batch_lhs(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("fmin");
+            {
+                INFO(print_function_name("fmin"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // max
         {
@@ -415,7 +569,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                            [](const value_type& l, const value_type& r) { return std::max(l, r); });
             batch_type res = max(batch_lhs(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("max");
+            {
+                INFO(print_function_name("max"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // max limit case
         {
@@ -423,7 +580,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                            [](const value_type& , const value_type& r) { return std::max(std::numeric_limits<value_type>::max(), r); });
             batch_type res = xsimd::max(batch_type(std::numeric_limits<value_type>::max()), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("max limit");
+            {
+                INFO(print_function_name("max limit"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // fmax
         {
@@ -431,7 +591,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                            [](const value_type& l, const value_type& r) { return std::fmax(l, r); });
             batch_type res = fmax(batch_lhs(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("fmax");
+            {
+                INFO(print_function_name("fmax"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
     }
 
@@ -444,7 +607,10 @@ protected:
                             [](const value_type& l, const value_type& r) { return l * r + r; });
             // Warning: ADL seems to not work correctly on Windows, thus the full qualified call
             batch_type res = xsimd::fma(batch_lhs(), batch_rhs(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("fma");
+            {
+                INFO(print_function_name("fma"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // fms
         {
@@ -452,7 +618,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.begin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return l * r - r; });
             batch_type res = fms(batch_lhs(), batch_rhs(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("fms");
+            {
+                INFO(print_function_name("fms"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // fnma
         {
@@ -460,7 +629,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.begin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return -l * r + r; });
             batch_type res = fnma(batch_lhs(), batch_rhs(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("fnma");
+            {
+                INFO(print_function_name("fnma"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // fnms
         {
@@ -468,7 +640,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), rhs.begin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return -l * r - r; });
             batch_type res = fnms(batch_lhs(), batch_rhs(), batch_rhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("fnms");
+            {
+                INFO(print_function_name("fnms"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
     }
 
@@ -480,7 +655,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(),
                             [](const value_type& l) { return ::detail::uabs(l); });
             batch_type res = abs(batch_lhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("abs");
+            {
+                INFO(print_function_name("abs"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // fabs
         {
@@ -488,7 +666,10 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(),
                             [](const value_type& l) { return std::fabs(l); });
             batch_type res = fabs(batch_lhs());
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("fabs");
+            {
+                INFO(print_function_name("fabs"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
     }
 
@@ -498,7 +679,8 @@ protected:
         {
             value_type expected = std::accumulate(lhs.cbegin(), lhs.cend(), value_type(0));
             value_type res = hadd(batch_lhs());
-            EXPECT_SCALAR_EQ(res, expected) << print_function_name("hadd");
+            INFO(print_function_name("hadd"));
+            EXPECT_SCALAR_EQ(res, expected);
         }
     }
 
@@ -510,14 +692,20 @@ protected:
             batch_bool_type tbt(true);
             batch_type expected = batch_type(value_type(1));
             batch_type res = tbt;
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch = true");
+            {
+                INFO(print_function_name("batch = true"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // batch = false
         {
             batch_bool_type fbt(false);
             batch_type expected = batch_type(value_type(0));
             batch_type res = fbt;
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("batch = false");
+            {
+                INFO(print_function_name("batch = false"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // !batch
         {
@@ -525,21 +713,30 @@ protected:
             std::transform(lhs.cbegin(), lhs.cend(), expected.begin(),
                             [](const value_type& l) { return !l; });
             batch_type res = !batch_lhs();
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("!batch");
+            {
+                INFO(print_function_name("!batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // bitwise_cast
         {
             batch_bool_type fbt(false);
             batch_type expected = batch_type(value_type(0));
             batch_type res = bitwise_cast(fbt);
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("bitwise_cast");
+            {
+                INFO(print_function_name("bitwise_cast"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
         // bitwise not
         {
             batch_bool_type fbt(true);
             batch_type expected = batch_type(value_type(0));
             batch_type res = ~bitwise_cast(fbt);
-            EXPECT_BATCH_EQ(res, expected) << print_function_name("~batch");
+            {
+                INFO(print_function_name("~batch"));
+                EXPECT_BATCH_EQ(res, expected);
+            }
         }
     }
 
@@ -551,22 +748,34 @@ protected:
         // iterator
         {
             std::copy(v.begin(), v.end(), res.begin());
-            EXPECT_EQ(res, expected) << print_function_name("iterator");
+            {
+                INFO( print_function_name("iterator"));
+                EXPECT_EQ(res, expected);
+            }
         }
         // constant iterator
         {
             std::copy(v.cbegin(), v.cend(), res.begin());
-            EXPECT_EQ(res, expected) << print_function_name("const iterator");
+            {
+                INFO( print_function_name("const iterator"));
+                EXPECT_EQ(res, expected);
+            }
         }
         // reverse iterator
         {
             std::copy(v.rbegin(), v.rend(), res.rbegin());
-            EXPECT_EQ(res, expected) << print_function_name("reverse iterator");
+            {
+                INFO( print_function_name("reverse iterator"));
+                EXPECT_EQ(res, expected);
+            }
         }
         // constant reverse iterator
         {
             std::copy(v.crbegin(), v.crend(), res.rbegin());
-            EXPECT_EQ(res, expected) << print_function_name("const reverse iterator");
+            {
+                INFO( print_function_name("const reverse iterator"));
+                EXPECT_EQ(res, expected);
+            }
         }
     }
 
@@ -614,75 +823,104 @@ private:
     }
 };
 
-TYPED_TEST_SUITE(batch_test, batch_types, simd_test_names);
-
-TYPED_TEST(batch_test, load_store)
+TEST_SUITE("batch_test")
 {
-    this->test_load_store();
-}
 
-TYPED_TEST(batch_test, constructors)
-{
-    this->test_constructors();
-}
+    TEST_CASE_TEMPLATE_DEFINE("load_store", TypeParam, batch_test_load_store)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_load_store();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_load_store, batch_types);
 
-TYPED_TEST(batch_test, static_builders)
-{
-    this->test_static_builders();
-}
+    TEST_CASE_TEMPLATE_DEFINE("constructors", TypeParam, batch_test_constructors)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_constructors();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_constructors, batch_types);
 
-TYPED_TEST(batch_test, access_operator)
-{
-    this->test_access_operator();
-}
+    TEST_CASE_TEMPLATE_DEFINE("static_builders", TypeParam, batch_test_static_builders)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_static_builders();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_static_builders, batch_types);
 
-TYPED_TEST(batch_test, arithmetic)
-{
-    this->test_arithmetic();
-}
+    TEST_CASE_TEMPLATE_DEFINE("access_operator", TypeParam, batch_test_access_operator)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_access_operator();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_access_operator, batch_types);
 
-TYPED_TEST(batch_test, saturated_arithmetic)
-{
-    this->test_saturated_arithmetic();
-}
+    TEST_CASE_TEMPLATE_DEFINE("arithmetic", TypeParam, batch_test_arithmetic)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_arithmetic();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_arithmetic, batch_types);
 
-TYPED_TEST(batch_test, computed_assignment)
-{
-    this->test_computed_assignment();
-}
+    TEST_CASE_TEMPLATE_DEFINE("saturated_arithmetic", TypeParam, batch_test_saturated_arithmetic)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_saturated_arithmetic();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_saturated_arithmetic, batch_types);
 
-TYPED_TEST(batch_test, comparison)
-{
-    this->test_comparison();
-}
+    TEST_CASE_TEMPLATE_DEFINE("computed_assignment", TypeParam, batch_test_computed_assignment)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_computed_assignment();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_computed_assignment, batch_types);
 
-TYPED_TEST(batch_test, min_max)
-{
-    this->test_min_max();
-}
+    TEST_CASE_TEMPLATE_DEFINE("comparison", TypeParam, batch_test_comparison)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_comparison();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_comparison, batch_types);
 
-TYPED_TEST(batch_test, fused_operations)
-{
-    this->test_fused_operations();
-}
+    TEST_CASE_TEMPLATE_DEFINE("min_max", TypeParam, batch_test_min_max)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_min_max();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_min_max, batch_types);
 
-TYPED_TEST(batch_test, abs)
-{
-    this->test_abs();
-}
+    TEST_CASE_TEMPLATE_DEFINE("fused_operations", TypeParam, batch_test_fused_operations)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_fused_operations();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_fused_operations, batch_types);
 
-TYPED_TEST(batch_test, horizontal_operations)
-{
-    this->test_horizontal_operations();
-}
+    TEST_CASE_TEMPLATE_DEFINE("abs", TypeParam, batch_test_abs)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_abs();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_abs, batch_types);
 
-TYPED_TEST(batch_test, boolean_conversions)
-{
-    this->test_boolean_conversions();
-}
+    TEST_CASE_TEMPLATE_DEFINE("horizontal_operations", TypeParam, batch_test_horizontal_operations)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_horizontal_operations();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_horizontal_operations, batch_types);
 
-TYPED_TEST(batch_test, iterator)
-{
-    this-> test_iterator();
-}
+    TEST_CASE_TEMPLATE_DEFINE("boolean_conversions", TypeParam, batch_test_boolean_conversions)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_boolean_conversions();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_boolean_conversions, batch_types);
 
+    TEST_CASE_TEMPLATE_DEFINE("iterator", TypeParam, batch_test_iterator)
+    {   
+        batch_test<TypeParam> tester;
+        tester.test_iterator();
+    }
+    TEST_CASE_TEMPLATE_APPLY(batch_test_iterator, batch_types);
+}

@@ -16,6 +16,8 @@
 
 #include <algorithm>
 #include <cstring>
+#include <cassert>
+
 
 // header for runtime architecture detection {
 #if defined(__ARM_NEON)

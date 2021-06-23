@@ -14,7 +14,7 @@
 template <class B>
 class complex_trigonometric_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using real_batch_type = typename B::real_batch;
@@ -61,7 +61,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("sin");
+        {
+            INFO(print_function_name("sin"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_cos()
@@ -76,7 +79,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("cos");
+        {
+            INFO(print_function_name("cos"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_sincos()
@@ -95,9 +101,15 @@ protected:
             detail::store_batch(out2, res2, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("sincos(sin)");
+        {
+            INFO(print_function_name("sincos(sin)"));
+            EXPECT_EQ(diff, 0);
+        }
         diff = detail::get_nb_diff(res2, expected2);
-        EXPECT_EQ(diff, 0) << print_function_name("sincos(cos)");
+        {
+            INFO(print_function_name("sincos(cos)"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_tan()
@@ -117,7 +129,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("asin");
+        {
+            INFO(print_function_name("asin"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_acos()
@@ -132,7 +147,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("acos");
+        {
+            INFO(print_function_name("acos"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_atan()
@@ -147,7 +165,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("atan");
+        {
+            INFO(print_function_name("atan"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 private:
 
@@ -163,7 +184,10 @@ private:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("tan");
+        {
+            INFO(print_function_name("tan"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     template <class T, typename std::enable_if<!std::is_same<T, float>::value, int>::type = 0>
@@ -185,39 +209,52 @@ private:
     }
 };
 
-TYPED_TEST_SUITE(complex_trigonometric_test, batch_complex_types, simd_test_names);
 
-TYPED_TEST(complex_trigonometric_test, sin)
+TEST_CASE_TEMPLATE_DEFINE("sin", TypeParam, complex_trigonometric_test_sin)
 {
-    this->test_sin();
+    complex_trigonometric_test<TypeParam> tester;
+    tester.test_sin();
 }
 
-TYPED_TEST(complex_trigonometric_test, cos)
+TEST_CASE_TEMPLATE_DEFINE("cos", TypeParam, complex_trigonometric_test_cos)
 {
-    this->test_cos();
+    complex_trigonometric_test<TypeParam> tester;
+    tester.test_cos();
 }
 
-TYPED_TEST(complex_trigonometric_test, sincos)
+TEST_CASE_TEMPLATE_DEFINE("sincos", TypeParam, complex_trigonometric_test_sincos)
 {
-    this->test_sincos();
+    complex_trigonometric_test<TypeParam> tester;
+    tester.test_sincos();
 }
 
-TYPED_TEST(complex_trigonometric_test, tan)
+TEST_CASE_TEMPLATE_DEFINE("tan", TypeParam, complex_trigonometric_test_tan)
 {
-    this->test_tan();
+    complex_trigonometric_test<TypeParam> tester;
+    tester.test_tan();
 }
 
-TYPED_TEST(complex_trigonometric_test, asin)
+TEST_CASE_TEMPLATE_DEFINE("asin", TypeParam, complex_trigonometric_test_asin)
 {
-    this->test_asin();
+    complex_trigonometric_test<TypeParam> tester;
+    tester.test_asin();
 }
 
-TYPED_TEST(complex_trigonometric_test, acos)
+TEST_CASE_TEMPLATE_DEFINE("acos", TypeParam, complex_trigonometric_test_acos)
 {
-    this->test_acos();
+    complex_trigonometric_test<TypeParam> tester;
+    tester.test_acos();
 }
 
-TYPED_TEST(complex_trigonometric_test, atan)
+TEST_CASE_TEMPLATE_DEFINE("atan", TypeParam, complex_trigonometric_test_atan)
 {
-    this->test_atan();
+    complex_trigonometric_test<TypeParam> tester;
+    tester.test_atan();
 }
+TEST_CASE_TEMPLATE_APPLY(complex_trigonometric_test_sin, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_trigonometric_test_cos, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_trigonometric_test_sincos, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_trigonometric_test_tan, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_trigonometric_test_asin, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_trigonometric_test_acos, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_trigonometric_test_atan, batch_complex_types);

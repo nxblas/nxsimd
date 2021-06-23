@@ -13,7 +13,7 @@
 template <class B>
 class complex_hyperbolic_test : public testing::Test
 {
-protected:
+public:
 
     using batch_type = B;
     using real_batch_type = typename B::real_batch;
@@ -60,7 +60,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("sinh");
+        {
+            INFO(print_function_name("sinh"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_cosh()
@@ -75,7 +78,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("cosh");
+        {
+            INFO(print_function_name("cosh"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_tanh()
@@ -90,7 +96,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("tanh");
+        {
+            INFO(print_function_name("tanh"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_asinh()
@@ -105,7 +114,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("asinh");
+        {
+            INFO(print_function_name("asinh"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_acosh()
@@ -120,7 +132,10 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("acosh");
+        {
+            INFO(print_function_name("acosh"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 
     void test_atanh()
@@ -135,39 +150,53 @@ protected:
             detail::store_batch(out, res, i);
         }
         size_t diff = detail::get_nb_diff(res, expected);
-        EXPECT_EQ(diff, 0) << print_function_name("atanh");
+        {
+            INFO(print_function_name("atanh"));
+            EXPECT_EQ(diff, 0);
+        }
     }
 };
 
-TYPED_TEST_SUITE(complex_hyperbolic_test, batch_complex_types, simd_test_names);
 
-TYPED_TEST(complex_hyperbolic_test, sinh)
+TEST_CASE_TEMPLATE_DEFINE("sinh", TypeParam, complex_hyperbolic_test_sinh)
 {
-    this->test_sinh();
+    complex_hyperbolic_test<TypeParam> tester;
+    tester.test_sinh();
 }
 
-TYPED_TEST(complex_hyperbolic_test, cosh)
+TEST_CASE_TEMPLATE_DEFINE("cosh", TypeParam, complex_hyperbolic_test_cosh)
 {
-    this->test_cosh();
+    complex_hyperbolic_test<TypeParam> tester;
+    tester.test_cosh();
 }
 
-TYPED_TEST(complex_hyperbolic_test, tanh)
+TEST_CASE_TEMPLATE_DEFINE("tanh", TypeParam, complex_hyperbolic_test_tanh)
 {
-    this->test_tanh();
+    complex_hyperbolic_test<TypeParam> tester;
+    tester.test_tanh();
 }
 
-TYPED_TEST(complex_hyperbolic_test, asinh)
+TEST_CASE_TEMPLATE_DEFINE("asinh", TypeParam, complex_hyperbolic_test_asinh)
 {
-    this->test_asinh();
+    complex_hyperbolic_test<TypeParam> tester;
+    tester.test_asinh();
 }
 
-TYPED_TEST(complex_hyperbolic_test, acosh)
+TEST_CASE_TEMPLATE_DEFINE("acosh", TypeParam, complex_hyperbolic_test_acosh)
 {
-    this->test_acosh();
+    complex_hyperbolic_test<TypeParam> tester;
+    tester.test_acosh();
 }
 
-TYPED_TEST(complex_hyperbolic_test, atanh)
+TEST_CASE_TEMPLATE_DEFINE("atanh", TypeParam, complex_hyperbolic_test_atanh)
 {
-    this->test_atanh();
+    complex_hyperbolic_test<TypeParam> tester;
+    tester.test_atanh();
 }
 
+TEST_CASE_TEMPLATE_APPLY(complex_hyperbolic_test_sinh, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_hyperbolic_test_cosh, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_hyperbolic_test_tanh, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_hyperbolic_test_asinh, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_hyperbolic_test_acosh, batch_complex_types);
+TEST_CASE_TEMPLATE_APPLY(complex_hyperbolic_test_atanh, batch_complex_types);
