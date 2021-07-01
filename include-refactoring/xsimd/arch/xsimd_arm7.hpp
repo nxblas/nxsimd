@@ -62,11 +62,13 @@ namespace xsimd
             using arm_dispatcher = arm_dispatcher_impl<uint8x16_t, int8x16_t,
                                                        uint16x8_t, int16x8_t,
                                                        uint32x4_t, int32x4_t,
-                                                       uint64x2_t, int64x2_t>;
+                                                       uint64x2_t, int64x2_t,
+                                                       float32x4_t>;
 
             using excluding_int64_dispatcher = arm_dispatcher_impl<uint8x16_t, int8x16_t,
                                                                    uint16x8_t, int16x8_t,
-                                                                   uint32x4_t, int32x4_t>;
+                                                                   uint32x4_t, int32x4_t,
+                                                                   float32x4_t>;
 
             /**************************
              * comparison dispatchers *
@@ -111,6 +113,12 @@ namespace xsimd
                 using type = uint32x4_t;
             };
 
+            template <>
+            struct comp_return_type_impl<float32x4_t>
+            {
+                using type = uint32x4_t;
+            };
+
             template <class T>
             using comp_return_type = typename comp_return_type_impl<T>::type;
 
@@ -121,7 +129,8 @@ namespace xsimd
 
             using excluding_int64_comp_dispatcher = arm_comp_dispatcher_impl<uint8x16_t, int8x16_t,
                                                                              uint16x8_t, int16x8_t,
-                                                                             uint32x4_t, int32x4_t>;
+                                                                             uint32x4_t, int32x4_t,
+                                                                             float32x4_t>;
 
             /**************************************
              * enabling / disabling metafunctions *
@@ -129,6 +138,10 @@ namespace xsimd
 
             template <class T>
             using enable_integral_t = typename std::enable_if<std::is_integral<T>::value, int>::type;
+
+            template <class T>
+            using enable_arm7_type_t = typename std::enable_if<std::is_integral<T>::value || std::is_same<T, float>::value,
+                                                               int>::type;
 
             template <class T, size_t S>
             using enable_sized_signed_t = typename std::enable_if<std::is_integral<T>::value &&
@@ -141,7 +154,8 @@ namespace xsimd
                                                                     sizeof(T) == S, int>::type;
 
             template <class T>
-            using exclude_int64_t = typename std::enable_if<std::is_integral<T>::value && sizeof(T) != 8, int>::type;
+            using exclude_int64_arm7_t
+                 = typename std::enable_if<std::is_integral<T>::value && sizeof(T) != 8 || std::is_same<T, float>::value, int>::type;
         }
 
         /*************
@@ -268,21 +282,17 @@ namespace xsimd
          * add *
          *******/
 
-        template <class T, class A, detail::enable_integral_t<T> = 0>
+        template <class T, class A, detail::enable_arm7_type_t<T> = 0>
         batch<T, A> add(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
             constexpr detail::arm_dispatcher::binary dispatcher =
             {
-                std::make_tuple(vaddq_u8, vaddq_s8, vaddq_u16, vaddq_s16, vaddq_u32, vaddq_s32, vaddq_u64, vaddq_s64)
+                std::make_tuple(vaddq_u8, vaddq_s8, vaddq_u16, vaddq_s16,
+                                vaddq_u32, vaddq_s32, vaddq_u64, vaddq_s64,
+                                vaddq_f32)
             };
             return dispatcher.run(register_type(lhs), register_type(rhs));
-        }
-
-        template <class A>
-        batch<float, A> add(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
-        {
-            return vaddq_f32(lhs, rhs);
         }
 
         /********
@@ -295,36 +305,28 @@ namespace xsimd
             using register_type = typename batch<T, A>::register_type;
             constexpr detail::arm_dispatcher::binary dispatcher =
             {
-                std::make_tuple(vqaddq_u8, vqaddq_s8, vqaddq_u16, vqaddq_s16, vqaddq_u32, vqaddq_s32, vqaddq_u64, vqaddq_s64)
+                std::make_tuple(vqaddq_u8, vqaddq_s8, vqaddq_u16, vqaddq_s16,
+                                vqaddq_u32, vqaddq_s32, vqaddq_u64, vqaddq_s64,
+                                vaddq_f32)
             };
             return dispatcher.run(register_type(lhs), register_type(rhs));
-        }
-
-        template <class A>
-        batch<float, A> sadd(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
-        {
-            return add(lhs, rhs);
         }
 
         /*******
          * sub *
          *******/
 
-        template <class T, class A, detail::enable_integral_t<T> = 0>
+        template <class T, class A, detail::enable_arm7_type_t<T> = 0>
         batch<T, A> sub(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
             constexpr detail::arm_dispatcher::binary dispatcher =
             {
-                std::make_tuple(vsubq_u8, vsubq_s8, vsubq_u16, vsubq_s16, vsubq_u32, vsubq_s32, vsubq_u64, vsubq_s64)
+                std::make_tuple(vsubq_u8, vsubq_s8, vsubq_u16, vsubq_s16,
+                                vsubq_u32, vsubq_s32, vsubq_u64, vsubq_s64,
+                                vsubq_f32)
             };
             return dispatcher.run(register_type(lhs), register_type(rhs));
-        }
-
-        template <class A>
-        batch<float, A> sub(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
-        {
-            return vsubq_f32(lhs, rhs);
         }
 
         /********
@@ -337,36 +339,27 @@ namespace xsimd
             using register_type = typename batch<T, A>::register_type;
             constexpr detail::arm_dispatcher::binary dispatcher =
             {
-                std::make_tuple(vqsubq_u8, vqsubq_s8, vqsubq_u16, vqsubq_s16, vqsubq_u32, vqsubq_s32, vqsubq_u64, vqsubq_s64)
+                std::make_tuple(vqsubq_u8, vqsubq_s8, vqsubq_u16, vqsubq_s16,
+                                vqsubq_u32, vqsubq_s32, vqsubq_u64, vqsubq_s64,
+                                vsubq_f32)
             };
             return dispatcher.run(register_type(lhs), register_type(rhs));
         }
 
-        template <class A>
-        batch<float, A> ssub(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
-        {
-            return sub(lhs, rhs);
-        }
 
         /*******
          * mul *
          *******/
 
-        template <class T, class A, detail::exclude_int64_t<T> = 0>
+        template <class T, class A, detail::exclude_int64_arm7_t<T> = 0>
         batch<T, A> mul(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
             constexpr detail::excluding_int64_dispatcher::binary dispatcher =
             {
-                std::make_tuple(vmulq_u8, vmulq_s8, vmulq_u16, vmulq_s16, vmulq_u32, vmulq_s32)
+                std::make_tuple(vmulq_u8, vmulq_s8, vmulq_u16, vmulq_s16, vmulq_u32, vmulq_s32, vmulq_f32)
             };
             return dispatcher.run(register_type(lhs), register_type(rhs));
-        }
-
-        template <class A>
-        batch<float, A> mul(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
-        {
-            return vmulq_f32(lhs, rhs);
         }
 
         /*******
@@ -408,105 +401,153 @@ namespace xsimd
          * eq *
          ******/
 
-        template <class T, class A, detail::exclude_int64_t<T> = 0>
+        template <class T, class A, detail::exclude_int64_arm7_t<T> = 0>
         batch_bool<T, A> eq(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
             constexpr detail::excluding_int64_comp_dispatcher::binary dispatcher =
             {
-                std::make_tuple(vceqq_u8, vceqq_s8, vceqq_u16, vceqq_s16, vceqq_u32, vceqq_s32)
+                std::make_tuple(vceqq_u8, vceqq_s8, vceqq_u16, vceqq_s16, vceqq_u32, vceqq_s32, vceqq_f32)
             };
             return dispatcher.run(register_type(lhs), register_type(rhs));
-        }
-
-        template <class A>
-        batch_bool<float, A> eq(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
-        {
-            return vceqq_f32(lhs, rhs);
         }
 
         /******
          * lt *
          ******/
 
-        template <class T, class A, detail::exclude_int64_t<T> = 0>
+        template <class T, class A, detail::exclude_int64_arm7_t<T> = 0>
         batch_bool<T, A> lt(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
             constexpr detail::excluding_int64_comp_dispatcher::binary dispatcher =
             {
-                std::make_tuple(vcltq_u8, vcltq_s8, vcltq_u16, vcltq_s16, vcltq_u32, vcltq_s32)
+                std::make_tuple(vcltq_u8, vcltq_s8, vcltq_u16, vcltq_s16, vcltq_u32, vcltq_s32, vcltq_f32)
             };
             return dispatcher.run(register_type(lhs), register_type(rhs));
-        }
-
-        template <class A>
-        batch_bool<float, A> lt(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
-        {
-            return vcltq_f32(lhs, rhs);
         }
 
         /******
          * le *
          ******/
 
-        template <class T, class A, detail::exclude_int64_t<T> = 0>
+        template <class T, class A, detail::exclude_int64_arm7_t<T> = 0>
         batch_bool<T, A> le(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
             constexpr detail::excluding_int64_comp_dispatcher::binary dispatcher =
             {
-                std::make_tuple(vcleq_u8, vcleq_s8, vcleq_u16, vcleq_s16, vcleq_u32, vcleq_s32)
+                std::make_tuple(vcleq_u8, vcleq_s8, vcleq_u16, vcleq_s16, vcleq_u32, vcleq_s32, vcleq_f32)
             };
             return dispatcher.run(register_type(lhs), register_type(rhs));
-        }
-
-        template <class A>
-        batch_bool<float, A> le(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
-        {
-            return vcleq_f32(lhs, rhs);
         }
 
         /******
          * gt *
          ******/
 
-        template <class T, class A, detail::exclude_int64_t<T> = 0>
+        template <class T, class A, detail::exclude_int64_arm7_t<T> = 0>
         batch_bool<T, A> gt(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
             constexpr detail::excluding_int64_comp_dispatcher::binary dispatcher =
             {
-                std::make_tuple(vcgtq_u8, vcgtq_s8, vcgtq_u16, vcgtq_s16, vcgtq_u32, vcgtq_s32)
+                std::make_tuple(vcgtq_u8, vcgtq_s8, vcgtq_u16, vcgtq_s16, vcgtq_u32, vcgtq_s32, vcgtq_f32)
             };
             return dispatcher.run(register_type(lhs), register_type(rhs));
-        }
-
-        template <class A>
-        batch_bool<float, A> gt(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
-        {
-            return vcgtq_f32(lhs, rhs);
         }
 
         /******
          * ge *
          ******/
 
-        template <class T, class A, detail::exclude_int64_t<T> = 0>
+        template <class T, class A, detail::exclude_int64_arm7_t<T> = 0>
         batch_bool<T, A> ge(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
             constexpr detail::excluding_int64_comp_dispatcher::binary dispatcher =
             {
-                std::make_tuple(vcgeq_u8, vcgeq_s8, vcgeq_u16, vcgeq_s16, vcgeq_u32, vcgeq_s32)
+                std::make_tuple(vcgeq_u8, vcgeq_s8, vcgeq_u16, vcgeq_s16, vcgeq_u32, vcgeq_s32, vcgeq_f32)
             };
             return dispatcher.run(register_type(lhs), register_type(rhs));
         }
 
-        template <class A>
-        batch_bool<float, A> ge(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
+        /***************
+         * bitwise_and *
+         ***************/
+
+        namespace detail
         {
-            return vcgeq_f32(lhs, rhs);
+            inline float32x4_t bitwise_and_f32(float32x4_t lhs, float32x4_t rhs)
+            {
+                return vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(lhs),
+                                                       vreinterpretq_u32_f32(rhs)));
+            }
+        }
+
+        template <class T, class A, detail::enable_arm7_type_t<T> = 0>
+        batch<T, A> bitwise_and(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            using register_type = typename batch<T, A>::register_type;
+            constexpr detail::arm_dispatcher::binary dispatcher =
+            {
+                std::make_tuple(vandq_u8, vandq_s8, vandq_u16, vandq_s16,
+                                vandq_u32, vandq_s32, vandq_u64, vandq_s64,
+                                detail::bitwise_and_f32)
+            };
+            return dispatcher.run(register_type(lhs), register_type(rhs));
+        }
+
+        /**************
+         * bitwise_or *
+         **************/
+
+        namespace detail
+        {
+            inline float32x4_t bitwise_or_f32(float32x4_t lhs, float32x4_t rhs)
+            {
+                return vreinterpretq_f32_u32(vorrq_u32(vreinterpretq_u32_f32(lhs),
+                                                       vreinterpretq_u32_f32(rhs)));
+            }
+        }
+
+        template <class T, class A, detail::enable_arm7_type_t<T> = 0>
+        batch<T, A> bitwise_or(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            using register_type = typename batch<T, A>::register_type;
+            constexpr detail::arm_dispatcher::binary dispatcher =
+            {
+                std::make_tuple(vorrq_u8, vorrq_s8, vorrq_u16, vorrq_s16,
+                                vorrq_u32, vorrq_s32, vorrq_u64, vorrq_s64,
+                                detail::bitwise_or_f32)
+            };
+            return dispatcher.run(register_type(lhs), register_type(rhs));
+        }
+
+        /***************
+         * bitwise_xor *
+         ***************/
+
+        namespace detail
+        {
+            inline float32x4_t bitwise_xor_f32(float32x4_t lhs, float32x4_t rhs)
+            {
+                return vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(lhs),
+                                                       vreinterpretq_u32_f32(rhs)));
+            }
+        }
+
+        template <class T, class A, detail::enable_arm7_type_t<T> = 0>
+        batch<T, A> bitwise_xor(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            using register_type = typename batch<T, A>::register_type;
+            constexpr detail::arm_dispatcher::binary dispatcher =
+            {
+                std::make_tuple(veorq_u8, veorq_s8, veorq_u16, veorq_s16,
+                                veorq_u32, veorq_s32, veorq_u64, veorq_s64,
+                                detail::bitwise_xor_f32)
+            };
+            return dispatcher.run(register_type(lhs), register_type(rhs));
         }
     }
 }
