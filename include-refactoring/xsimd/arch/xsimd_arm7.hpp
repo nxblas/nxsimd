@@ -14,18 +14,18 @@ namespace xsimd
 
         namespace detail
         {
-            template <class... T>
-            struct arm_dispatcher_impl
+            template <template <class> class return_type, class... T>
+            struct arm_dispatcher_base
             {
                 struct unary
                 {
-                    using container_type = std::tuple<T (*)(T) ...>;
+                    using container_type = std::tuple<return_type<T> (*)(T)...>;
                     const container_type m_func;
 
                     template <class U>
-                    U run(U rhs) const
+                    return_type<U> run(U rhs) const
                     {
-                        using func_type = U (*)(U);
+                        using func_type = return_type<U> (*)(U);
                         auto func = xsimd::detail::get<func_type>(m_func);
                         return func(rhs);
                     }
@@ -33,18 +33,31 @@ namespace xsimd
 
                 struct binary
                 {
-                    using container_type = std::tuple<T (*)(T, T) ...>;
+                    using container_type = std::tuple<return_type<T> (*)(T, T) ...>;
                     const container_type m_func;
 
                     template <class U>
-                    U run(U lhs, U rhs) const
+                    return_type<U> run(U lhs, U rhs) const
                     {
-                        using func_type = U (*)(U, U);
+                        using func_type = return_type<U> (*)(U, U);
                         auto func = xsimd::detail::get<func_type>(m_func);
                         return func(lhs, rhs);
                     }
                 };
             };
+
+            /***************************
+             *  arithmetic dispatchers *
+             ***************************/
+
+            template <class T>
+            using identity_return_type = T;
+            
+            template <class... T>
+            struct arm_dispatcher_impl : arm_dispatcher_base<identity_return_type, T...>
+            {
+            };
+
 
             using arm_dispatcher = arm_dispatcher_impl<uint8x16_t, int8x16_t,
                                                        uint16x8_t, int16x8_t,
@@ -55,6 +68,64 @@ namespace xsimd
                                                                    uint16x8_t, int16x8_t,
                                                                    uint32x4_t, int32x4_t>;
 
+            /**************************
+             * comparison dispatchers *
+             **************************/
+
+            template <class T>
+            struct comp_return_type_impl;
+
+            template <>
+            struct comp_return_type_impl<uint8x16_t>
+            {
+                using type = uint8x16_t;
+            };
+
+            template <>
+            struct comp_return_type_impl<int8x16_t>
+            {
+                using type = uint8x16_t;
+            };
+
+            template <>
+            struct comp_return_type_impl<uint16x8_t>
+            {
+                using type = uint16x8_t;
+            };
+
+            template <>
+            struct comp_return_type_impl<int16x8_t>
+            {
+                using type = uint16x8_t;
+            };
+
+            template <>
+            struct comp_return_type_impl<uint32x4_t>
+            {
+                using type = uint32x4_t;
+            };
+
+            template <>
+            struct comp_return_type_impl<int32x4_t>
+            {
+                using type = uint32x4_t;
+            };
+
+            template <class T>
+            using comp_return_type = typename comp_return_type_impl<T>::type;
+
+            template <class... T>
+            struct arm_comp_dispatcher_impl : arm_dispatcher_base<comp_return_type, T...>
+            {
+            };
+
+            using excluding_int64_comp_dispatcher = arm_comp_dispatcher_impl<uint8x16_t, int8x16_t,
+                                                                             uint16x8_t, int16x8_t,
+                                                                             uint32x4_t, int32x4_t>;
+
+            /**************************************
+             * enabling / disabling metafunctions *
+             **************************************/
 
             template <class T>
             using enable_integral_t = typename std::enable_if<std::is_integral<T>::value, int>::type;
@@ -144,7 +215,7 @@ namespace xsimd
         template <class A>
         batch<float, A> set(batch<float, A> const &, requires<arm7>, float f0, float f1, float f2, float f3)
         {
-            return flaot32x4_t{f0, f1, f2, f3};
+            return float32x4_t{f0, f1, f2, f3};
         }
 
         /*******
@@ -337,8 +408,106 @@ namespace xsimd
          * eq *
          ******/
 
-        //template <class T, class A, detail::exclude_int64_t<T> = 0>
-        //batch_bool<T, A>
+        template <class T, class A, detail::exclude_int64_t<T> = 0>
+        batch_bool<T, A> eq(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            using register_type = typename batch<T, A>::register_type;
+            constexpr detail::excluding_int64_comp_dispatcher::binary dispatcher =
+            {
+                std::make_tuple(vceqq_u8, vceqq_s8, vceqq_u16, vceqq_s16, vceqq_u32, vceqq_s32)
+            };
+            return dispatcher.run(register_type(lhs), register_type(rhs));
+        }
+
+        template <class A>
+        batch_bool<float, A> eq(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
+        {
+            return vceqq_f32(lhs, rhs);
+        }
+
+        /******
+         * lt *
+         ******/
+
+        template <class T, class A, detail::exclude_int64_t<T> = 0>
+        batch_bool<T, A> lt(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            using register_type = typename batch<T, A>::register_type;
+            constexpr detail::excluding_int64_comp_dispatcher::binary dispatcher =
+            {
+                std::make_tuple(vcltq_u8, vcltq_s8, vcltq_u16, vcltq_s16, vcltq_u32, vcltq_s32)
+            };
+            return dispatcher.run(register_type(lhs), register_type(rhs));
+        }
+
+        template <class A>
+        batch_bool<float, A> lt(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
+        {
+            return vcltq_f32(lhs, rhs);
+        }
+
+        /******
+         * le *
+         ******/
+
+        template <class T, class A, detail::exclude_int64_t<T> = 0>
+        batch_bool<T, A> le(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            using register_type = typename batch<T, A>::register_type;
+            constexpr detail::excluding_int64_comp_dispatcher::binary dispatcher =
+            {
+                std::make_tuple(vcleq_u8, vcleq_s8, vcleq_u16, vcleq_s16, vcleq_u32, vcleq_s32)
+            };
+            return dispatcher.run(register_type(lhs), register_type(rhs));
+        }
+
+        template <class A>
+        batch_bool<float, A> le(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
+        {
+            return vcleq_f32(lhs, rhs);
+        }
+
+        /******
+         * gt *
+         ******/
+
+        template <class T, class A, detail::exclude_int64_t<T> = 0>
+        batch_bool<T, A> gt(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            using register_type = typename batch<T, A>::register_type;
+            constexpr detail::excluding_int64_comp_dispatcher::binary dispatcher =
+            {
+                std::make_tuple(vcgtq_u8, vcgtq_s8, vcgtq_u16, vcgtq_s16, vcgtq_u32, vcgtq_s32)
+            };
+            return dispatcher.run(register_type(lhs), register_type(rhs));
+        }
+
+        template <class A>
+        batch_bool<float, A> gt(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
+        {
+            return vcgtq_f32(lhs, rhs);
+        }
+
+        /******
+         * ge *
+         ******/
+
+        template <class T, class A, detail::exclude_int64_t<T> = 0>
+        batch_bool<T, A> ge(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            using register_type = typename batch<T, A>::register_type;
+            constexpr detail::excluding_int64_comp_dispatcher::binary dispatcher =
+            {
+                std::make_tuple(vcgeq_u8, vcgeq_s8, vcgeq_u16, vcgeq_s16, vcgeq_u32, vcgeq_s32)
+            };
+            return dispatcher.run(register_type(lhs), register_type(rhs));
+        }
+
+        template <class A>
+        batch_bool<float, A> ge(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
+        {
+            return vcgeq_f32(lhs, rhs);
+        }
     }
 }
 
