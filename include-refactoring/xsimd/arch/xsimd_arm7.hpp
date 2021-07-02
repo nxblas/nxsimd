@@ -692,6 +692,117 @@ namespace xsimd
         }
 #endif
 
+        /********
+         * hadd *
+         ********/
+
+        namespace detail
+        {
+            template <class T, class A>
+            T sum_batch(batch<T, A> const& arg)
+            {
+                T res = T(0);
+                for (std::size_t i = 0; i < batch<T, A>::size; ++i)
+                {
+                    res += arg[i];
+                }
+                return res;
+            }
+        }
+
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 1> = 0>
+        T hadd(batch<T, A> const& arg, requires<arm7>)
+        {
+            uint8x8_t tmp = vpadd_u8(vget_low_u8(rhs), vget_high_u8(rhs));
+            return detail::sum_batch(tmp);
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 1> = 0>
+        T hadd(batch<T, A> const& arg, requires<arm7>)
+        {
+            int8x8_t tmp = vpadd_s8(vget_low_s8(rhs), vget_high_s8(rhs));
+            return detail::sum_batch(tmp);
+        }
+
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 2> = 0>
+        typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm7>)
+        {
+            uint16x4_t tmp = vpadd_u16(vget_low_u16(rhs), vget_high_u16(rhs));
+            return detail::sum_batch(tmp);
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 2> = 0>
+        typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm7>)
+        {
+            int16x4_t tmp = vpadd_s16(vget_low_s16(rhs), vget_high_s16(rhs));
+            return detail::sum_batch(tmp);
+        }
+
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 4> = 0>
+        typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm7>)
+        {
+            uint32x2_t tmp = vpadd_u32(vget_low_u32(rhs), vget_high_u32(rhs));
+            tmp = vpadd_u32(tmp, tmp);
+            return vget_lane_u32(tmp, 0);
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 4> = 0>
+        typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm7>)
+        {
+            int32x2_t tmp = vpadd_s32(vget_low_s32(rhs), vget_high_s32(rhs));
+            tmp = vpadd_s32(tmp, tmp);
+            return vget_lane_s32(tmp, 0);
+        }
+
+        template <class A>
+        float hadd(batch<float, A> const& arg, requires<arm7>)
+        {
+            float32x2_t tmp = vpadd_f32(vget_low_f32(rhs), vget_high_f32(rhs));
+            tmp = vpadd_f32(tmp, tmp);
+            return vget_lane_f32(tmp, 0);
+        }
+
+        /*********
+         * haddp *
+         *********/
+
+        template <class A>
+        batch<float, A> haddp(const batch<float, A>* row)
+        {
+            // row = (a,b,c,d)
+            float32x2_t tmp1, tmp2, tmp3;
+            // tmp1 = (a0 + a2, a1 + a3)
+            tmp1 = vpadd_f32(vget_low_f32(row[0]()), vget_high_f32(row[0]()));
+            // tmp2 = (b0 + b2, b1 + b3)
+            tmp2 = vpadd_f32(vget_low_f32(row[1]()), vget_high_f32(row[1]()));
+            // tmp1 = (a0..3, b0..3)
+            tmp1 = vpadd_f32(tmp1, tmp2);
+            // tmp2 = (c0 + c2, c1 + c3)
+            tmp2 = vpadd_f32(vget_low_f32(row[2]()), vget_high_f32(row[2]()));
+            // tmp3 = (d0 + d2, d1 + d3)
+            tmp3 = vpadd_f32(vget_low_f32(row[3]()), vget_high_f32(row[3]()));
+            // tmp1 = (c0..3, d0..3)
+            tmp2 = vpadd_f32(tmp2, tmp3);
+            // return = (a0..3, b0..3, c0..3, d0..3)
+            return vcombine_f32(tmp1, tmp2);
+        }
+
+        /**********
+         * select *
+         **********/
+
+        template <class T, class A, detail::enable_arm7_type_t<T> = 0>
+        batch<T, A> select(batch_bool<T, A> const& cond, batch<T, A> const& a, batch<T, A> const& b)
+        {
+            using register_type = typename batch<T, A>::register_type;
+            constexpr detail::arm_dispatcher::binary dispatcher =
+            {
+                std::make_tuple(vbslq_u8, vbslq_s8, vbslq_u16, vbslq_s16,
+                                vbslq_u32, vbslq_s32, vbslq_u64, vbslq_s64,
+                                vbslq_f32)
+            };
+            return dispatcher.run(register_type(lhs), register_type(rhs));
+        }
     }
 }
 
