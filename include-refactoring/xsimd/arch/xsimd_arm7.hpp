@@ -568,7 +568,7 @@ namespace xsimd
 
             inline float32x4_t bitwise_not_f32(float32x4_t arg)
             {
-                return vreinterpretq_f32_u32(vmvnq_u32(vreinterpretq_u32_f32(rhs)));
+                return vreinterpretq_f32_u32(vmvnq_u32(vreinterpretq_u32_f32(arg)));
             }
         }
 
@@ -664,12 +664,12 @@ namespace xsimd
          ********/
 
         template <class A>
-        batch<float, A> sqrt(batch<float, A> const& args, requires<arm7>)
+        batch<float, A> sqrt(batch<float, A> const& arg, requires<arm7>)
         {
-            batch<float, A> sqrt_reciprocal = vrsqrteq_f32(rhs);
+            batch<float, A> sqrt_reciprocal = vrsqrteq_f32(arg);
             // one iter
-            sqrt_reciprocal = sqrt_reciprocal * batch<float, A>(vrsqrtsq_f32(rhs * sqrt_reciprocal, sqrt_reciprocal));
-            batch<float, A> sqrt_approx = rhs * sqrt_reciprocal * batch<float, A>(vrsqrtsq_f32(rhs * sqrt_reciprocal, sqrt_reciprocal));
+            sqrt_reciprocal = sqrt_reciprocal * batch<float, A>(vrsqrtsq_f32(arg * sqrt_reciprocal, sqrt_reciprocal));
+            batch<float, A> sqrt_approx = arg * sqrt_reciprocal * batch<float, A>(vrsqrtsq_f32(arg * sqrt_reciprocal, sqrt_reciprocal));
             batch<float, A> zero(0.f);
             return select(rhs == zero, zero, sqrt_approx);
         }
@@ -803,6 +803,137 @@ namespace xsimd
             };
             return dispatcher.run(register_type(lhs), register_type(rhs));
         }
+
+        /**********
+         * zip_lo *
+         **********/
+
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 1> = 0>
+        batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            uint8x8x2_t tmp = vzip_u8(vget_low_u8(lhs), vget_low_u8(rhs));
+            return vcombine_u8(tmp.val[0], tmp.val[1]);
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 1> = 0>
+        batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            int8x8x2_t tmp = vzip_s8(vget_low_s8(lhs), vget_low_s8(rhs));
+            return vcombine_s8(tmp.val[0], tmp.val[1]);
+        }
+
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 2> = 0>
+        batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            uint16x4x2_t tmp = vzip_u16(vget_low_u16(lhs), vget_low_u16(rhs));
+            return vcombine_u16(tmp.val[0], tmp.val[1]);
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 2> = 0>
+        batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            int16x4x2_t tmp = vzip_s16(vget_low_s16(lhs), vget_low_s16(rhs));
+            return vcombine_s16(tmp.val[0], tmp.val[1]);
+        }
+
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 4> = 0>
+        batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            uint32x2x2_t tmp = vzip_u32(vget_low_u32(lhs), vget_low_u32(rhs));
+            return vcombine_u32(tmp.val[0], tmp.val[1]);
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 4> = 0>
+        batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            int32x2x2_t tmp = vzip_s32(vget_low_s32(lhs), vget_low_s32(rhs));
+            return vcombine_s32(tmp.val[0], tmp.val[1]);
+        }
+
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 8> = 0>
+        batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            return vcombine_u64(vget_low_u64(lhs), vget_low_u64(rhs));
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 8> = 0>
+        batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            return vcombine_s64(vget_low_s64(lhs), vget_low_s64(rhs));
+        }
+
+        template <class A>
+        batch<float, A> zip_lo(batch<float, A> const& lhs, batch<float, A> const& rhs)
+        {
+            float32x2x2_t tmp = vzip_f32(vget_low_f32(lhs), vget_low_f32(rhs));
+            return vcombine_f32(tmp.val[0], tmp.val[1]);
+        }
+
+        /**********
+         * zip_hi *
+         **********/
+
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 1> = 0>
+        batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            uint8x8x2_t tmp = vzip_u8(vget_high_u8(lhs), vget_high_u8(rhs));
+            return vcombine_u8(tmp.val[0], tmp.val[1]);
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 1> = 0>
+        batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            int8x8x2_t tmp = vzip_s8(vget_high_s8(lhs), vget_high_s8(rhs));
+            return vcombine_s8(tmp.val[0], tmp.val[1]);
+        }
+
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 2> = 0>
+        batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            uint16x4x2_t tmp = vzip_u16(vget_high_u16(lhs), vget_high_u16(rhs));
+            return vcombine_u16(tmp.val[0], tmp.val[1]);
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 2> = 0>
+        batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            int16x4x2_t tmp = vzip_s16(vget_high_s16(lhs), vget_high_s16(rhs));
+            return vcombine_s16(tmp.val[0], tmp.val[1]);
+        }
+
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 4> = 0>
+        batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            uint32x2x2_t tmp = vzip_u32(vget_high_u32(lhs), vget_high_u32(rhs));
+            return vcombine_u32(tmp.val[0], tmp.val[1]);
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 4> = 0>
+        batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            int32x2x2_t tmp = vzip_s32(vget_high_s32(lhs), vget_high_s32(rhs));
+            return vcombine_s32(tmp.val[0], tmp.val[1]);
+        }
+
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 8> = 0>
+        batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            return vcombine_u64(vget_high_u64(lhs), vget_high_u64(rhs));
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 8> = 0>
+        batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            return vcombine_s64(vget_high_s64(lhs), vget_high_s64(rhs));
+        }
+
+        template <class A>
+        batch<float, A> zip_hi(batch<float, A> const& lhs, batch<float, A> const& rhs)
+        {
+            float32x2x2_t tmp = vzip_f32(vget_high_f32(lhs), vget_high_f32(rhs));
+            return vcombine_f32(tmp.val[0], tmp.val[1]);
+        }
+
     }
 }
 
