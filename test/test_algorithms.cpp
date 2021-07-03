@@ -10,6 +10,10 @@
 
 #include <numeric>
 #include "test_utils.hpp"
+#include <xsimd/xsimd.hpp>
+#include <xsimd/types/xsimd_fallback.hpp>
+#include <xsimd/types/xsimd_traits.hpp>
+#include <xsimd/types/xsimd_base.hpp>
 
 struct binary_functor
 {
@@ -31,6 +35,64 @@ struct unary_functor
 
 template <class T>
 using test_allocator_type = xsimd::aligned_allocator<T>;
+
+template <class C>
+struct types {
+    using value_type = typename std::decay<decltype(*C().begin())>::type;
+    using traits = xsimd::simd_traits<value_type>;
+    using batch_type = typename traits::type;
+};
+
+#if XSIMD_X86_INSTR_SET > XSIMD_VERSION_NUMBER_NOT_AVAILABLE || XSIMD_ARM_INSTR_SET > XSIMD_VERSION_NUMBER_NOT_AVAILABLE
+TEST(algorithms, unary_transform_batch)
+{
+    using vector_type = std::vector<int, test_allocator_type<int>>;
+    using batch_type = types<vector_type>::batch_type;
+    auto flip_flop = vector_type(42, 0);
+    std::iota(flip_flop.begin(), flip_flop.end(), 1);
+    auto square_pair = [](int x) {
+        return !(x % 2) ? x : x*x;
+    };
+    auto flip_flop_axpected = flip_flop;
+    std::transform(flip_flop_axpected.begin(), flip_flop_axpected.end(), flip_flop_axpected.begin(), square_pair);
+
+    xsimd::transform(flip_flop.begin(), flip_flop.end(), flip_flop.begin(),
+    // NOTE: since c++14 a simple `[](auto x)` reduce code complexity
+    [](int x) {
+        return !(x % 2) ? x : x*x;
+    },
+    // NOTE: since c++14 a simple `[](auto b)` reduce code complexity
+    [](batch_type b) {
+        return xsimd::select(!(b % 2), b, b*b);
+    });
+    EXPECT_TRUE(std::equal(flip_flop_axpected.begin(), flip_flop_axpected.end(), flip_flop.begin()) && flip_flop_axpected.size() == flip_flop.size());
+}
+
+TEST(algorithms, binary_transform_batch)
+{
+    using vector_type = std::vector<int, test_allocator_type<int>>;
+    using batch_type = types<vector_type>::batch_type;
+    auto flip_flop_a = vector_type(42, 0);
+    auto flip_flop_b = vector_type(42, 0);
+    std::iota(flip_flop_a.begin(), flip_flop_a.end(), 1);
+    std::iota(flip_flop_b.begin(), flip_flop_b.end(), 3);
+    auto square_pair = [](int x, int y) {
+        return !((x + y) % 2) ? x + y : x*x + y*y;
+    };
+    auto flip_flop_axpected = flip_flop_a;
+    std::transform(flip_flop_a.begin(), flip_flop_a.end(), flip_flop_b.begin(), flip_flop_axpected.begin(), square_pair);
+
+    auto flip_flop_result = vector_type(flip_flop_axpected.size());
+    xsimd::transform(flip_flop_a.begin(), flip_flop_a.end(), flip_flop_b.begin(), flip_flop_result.begin(),
+    [](int x, int y) {
+        return !((x +y) % 2) ? x + y : x*x + y*y;
+    },
+    [](batch_type bx, batch_type by) {
+        return xsimd::select(!((bx + by) % 2), bx + by, bx*bx + by+by);
+    });
+    EXPECT_TRUE(std::equal(flip_flop_axpected.begin(), flip_flop_axpected.end(), flip_flop_result.begin()) && flip_flop_axpected.size() == flip_flop_result.size());
+}
+#endif
 
 TEST(algorithms, binary_transform)
 {
@@ -77,7 +139,6 @@ TEST(algorithms, binary_transform)
     EXPECT_TRUE(std::equal(expected.begin(), expected.end(), ca.begin()) && expected.size() == ca.size());
     std::fill(ca.begin(), ca.end(), -1); // erase
 }
-
 
 TEST(algorithms, unary_transform)
 {
@@ -209,6 +270,102 @@ TEST_F(xsimd_reduce, using_custom_binary_function)
 
         EXPECT_DOUBLE_EQ(std::accumulate(sbegin, send, init, multiply{}), xsimd::reduce(sbegin, send, init, multiply{}));
     }
+}
+
+TEST(algorithms, reduce_batch)
+{
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    using vector_type = std::vector<float, test_allocator_type<float>>;
+    using batch_type = types<vector_type>::batch_type;
+    auto vector_with_nan = vector_type(1000, 0);
+    std::iota(vector_with_nan.begin(), vector_with_nan.end(), 3.5);
+    auto i = 0;
+    auto add_nan = [&i, &nan](const float x) {
+        return i % 2 ? nan : x;
+    };
+    std::transform(vector_with_nan.begin(), vector_with_nan.end(), vector_with_nan.begin(), add_nan);
+
+    auto nansum_expected = std::accumulate(vector_with_nan.begin(), vector_with_nan.end(), 0.0,
+    [](float x, float y) {
+        return (std::isnan(x) ? 0.0 : x) + (std::isnan(y) ? 0.0 : y);
+    });
+
+    auto nansum = xsimd::reduce(vector_with_nan.begin(), vector_with_nan.end(), 0.0, 
+    [](float x, float y) {
+        return (std::isnan(x) ? 0.0 : x) + (std::isnan(y) ? 0.0 : y);
+    },
+    [](batch_type x, batch_type y) {
+        static batch_type zero(0.0);
+        auto xnan = xsimd::isnan(x);
+        auto ynan = xsimd::isnan(y);
+        auto xs = xsimd::select(xnan, zero, x);
+        auto ys = xsimd::select(ynan, zero, y);
+        return xs + ys;
+    });
+
+    EXPECT_NEAR(nansum_expected, nansum, 1e-6);
+
+    auto count_nan_expected = std::count_if(vector_with_nan.begin(), vector_with_nan.end(),
+    [](float x){
+        return static_cast<std::size_t>(std::isnan(x));
+    });
+
+    auto count_nan = xsimd::count_if(vector_with_nan.begin(), vector_with_nan.end(),
+    [](float x){
+        return static_cast<std::size_t>(std::isnan(x));
+    },
+    [](batch_type b) {
+        static decltype(b) zero(0.0);
+        static decltype(b) one(1.0);
+        auto bnan = xsimd::isnan(b);
+        return static_cast<std::size_t>(xsimd::hadd(xsimd::select(bnan, one, zero)));
+    });
+
+    EXPECT_EQ(count_nan_expected, count_nan);
+
+    auto count_not_nan_expected = vector_with_nan.size() - count_nan_expected;
+    auto count_not_nan = vector_with_nan.size() - count_nan;
+
+    auto nanmean_expected = count_not_nan_expected ? nansum_expected / (float)count_not_nan_expected : 0;
+    auto nanmean = count_not_nan ? nansum / (float)count_not_nan : 0;
+
+    EXPECT_NEAR(nanmean_expected, nanmean, 1e-6);
+}
+
+TEST(algorithms, count)
+{
+    using vector_type = std::vector<float, test_allocator_type<float>>;
+    auto v = vector_type(100, 0);
+    std::iota(v.begin(), v.end(), 3.14);
+    v[12] = 123.321;
+    v[42] = 123.321;
+    v[93] = 123.321;
+
+    EXPECT_EQ(3, xsimd::count(v.begin(), v.end(), 123.321));
+}
+
+TEST(algorithms, count_if)
+{
+    using vector_type = std::vector<int, test_allocator_type<int>>;
+    using batch_type = types<vector_type>::batch_type;
+    auto v = vector_type(100, 0);
+    std::iota(v.begin(), v.end(), 1);
+
+    auto count_expected = std::count_if(v.begin(), v.end(), 
+    [](int x) {
+        return x >= 50 && x <= 70 ? 1 : 0;
+    });
+
+    auto count = xsimd::count_if(v.begin(), v.end(), 
+    [](int x) {
+        return x >= 50 && x <= 70 ? 1 : 0;
+    },
+    [](batch_type b) {
+        static batch_type zero(0);
+        static batch_type one(1);
+        return xsimd::hadd(xsimd::select(b >= 50 && b <= 70, one, zero));
+    });
+    EXPECT_EQ(count_expected, count);
 }
 
 #if XSIMD_X86_INSTR_SET > XSIMD_VERSION_NUMBER_NOT_AVAILABLE || XSIMD_ARM_INSTR_SET > XSIMD_VERSION_NUMBER_NOT_AVAILABLE

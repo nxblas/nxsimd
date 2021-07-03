@@ -151,6 +151,46 @@ void mean(const vector_type& a, const vector_type& b, vector_type& res)
 }
 ```
 
+Algorithms like `xsimd::reduce` and `xsimd::transform` are available also in the batch explicit modality:  
+
+```cpp
+template <class C, class T = typename std::decay<decltype(*C().begin())>::type>
+T nansum(const C& v) 
+{
+    return xsimd::reduce_batch(v.begin(), v.end(), 0.0, 
+           [](auto x, auto y) {
+               return (std::isnan(x) ? 0.0 : x) + (std::isnan(y) ? 0.0 : y);
+           },
+           [](auto x, auto y) {
+               static decltype(x) zero(0.0);
+               auto xnan = xsimd::isnan(x);
+               auto ynan = xsimd::isnan(y);
+               auto xs = xsimd::select(xnan, zero, x);
+               auto ys = xsimd::select(ynan, zero, y);
+               return xs + ys;
+           });
+}
+```
+
+To switch from `std::count_if` to `xsimd::count_if`:  
+
+```cpp
+// v is an aligned vector of int type
+auto count_expected = std::count_if(v.begin(), v.end(), 
+[](auto x) {
+    return x >= 50 && x <= 70 ? 1 : 0;
+});
+auto count = xsimd::count_if(v.begin(), v.end(), 
+[](auto x) {
+    return x >= 50 && x <= 70 ? 1 : 0;
+},
+[](auto b) {
+    static decltype(b) zero(0);
+    static decltype(b) one(1);
+    return xsimd::hadd(xsimd::select(b >= 50 && b <= 70, one, zero));
+});
+assert(count_expected == count);
+```
 
 ## Building and Running the Tests
 
