@@ -27,12 +27,12 @@ auto add(T const& self, Tp const& other) -> decltype(self + other){
 }
 
 template<class T, class A>
-bool all(batch<T, A> const& self) {
+bool all(batch_bool<T, A> const& self) {
   return kernel::all<A>(self, A{});
 }
 
 template<class T, class A>
-bool any(batch<T, A> const& self) {
+bool any(batch_bool<T, A> const& self) {
   return kernel::any<A>(self, A{});
 }
 
