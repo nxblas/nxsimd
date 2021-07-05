@@ -369,6 +369,10 @@ namespace xsimd
 #endif
     }
 
+    /*****************
+     * REPEAT macros *
+     *****************/
+
 /* For Shift instruction: vshlq_n_u8/vshrq_n_u8 (lhs, n),
  * 'n' must be a constant and is the compile-time literal constant.
  *

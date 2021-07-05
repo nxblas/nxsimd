@@ -244,6 +244,59 @@ namespace xsimd
             return float32x4_t{f0, f1, f2, f3};
         }
 
+        /********
+         * load *
+         ********/
+
+        // TODO
+
+        /*********
+         * store *
+         *********/
+
+        // TODO
+
+        /****************
+         * load_complex *
+         ****************/
+
+        template <class A>
+        batch<std::complex<float>, A> load_complex_aligned(std::complex<float> const* mem, requires<arm7>)
+        {
+            using real_batch = batch<float, A>;
+            const float* buf = reinterpret_cast<const float*>(mem);
+            float32x4x2_t tmp = vld2q_f32(buf);
+            real_batch real = tmp.val[0],
+                       imag = tmp.val[1];
+            return batch<std::complex<float>, A>{real, imag};
+        }
+
+        template <class A>
+        batch<std::complex<float>, A> load_complex_unaligned(std::complex<float> const* mem, requires<arm7>)
+        {
+            return load_complex_aligned<A>(mem, A{});
+        }
+
+        /*****************
+         * store_complex *
+         *****************/
+
+        template <class A>
+        void store_complex_aligned(std::complex<float>* dst, batch<std::complex<float>, A> const& src, requires<arm7>)
+        {
+            float32x4x2_t tmp;
+            tmp.val[0] = src.real();
+            tmp.val[1] = src.imag();
+            float* buf = reinterpret_cast<float*>(dst);
+            vst2q_f32(buf, tmp);
+        }
+
+        template <class A>
+        void store_complex_unaligned(std::complex<float>* dst, batch<std::complex<float>, A> const& src, requires<arm7>)
+        {
+            store_complex_aligned(dst, src, A{});
+        }
+
         /*******
          * neg *
          *******/
