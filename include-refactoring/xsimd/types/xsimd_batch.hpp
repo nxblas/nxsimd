@@ -465,39 +465,25 @@ template<class T, class A>
 batch<std::complex<T>, A>
 batch<std::complex<T>, A>::load_aligned(const value_type* src)
 {
-  T const *buffer = reinterpret_cast<T const *>(src);
-  real_batch hi = real_batch::load_aligned(buffer),
-             lo = real_batch::load_aligned(buffer + real_batch::size);
-  return kernel::load_complex<A>(hi, lo, A{});
+    return kernel::load_complex_aligned<A>(src, A{});
 }
 
 template<class T, class A>
 batch<std::complex<T>, A>
 batch<std::complex<T>, A>::load_unaligned(const value_type* src)
 {
-  T const *buffer = reinterpret_cast<T const *>(src);
-  real_batch hi = real_batch::load_unaligned(buffer),
-             lo = real_batch::load_unaligned(buffer + real_batch::size);
-  return kernel::load_complex<A>(hi, lo, A{});
+    return kernel::load_complex_unaligned<A>(src, A{});
 }
 
 template<class T, class A>
 void batch<std::complex<T>, A>::store_aligned(value_type* dst) const {
-          real_batch hi = kernel::complex_high(*this, A{});
-          real_batch lo = kernel::complex_low(*this, A{});
-          T * buffer = reinterpret_cast<T*>(dst);
-          lo.store_aligned(buffer);
-          hi.store_aligned(buffer + size);
-        }
+    return kernel::store_complex_aligned(dst, *this, A{});
+}
 
 template<class T, class A>
 void batch<std::complex<T>, A>::store_unaligned(value_type* dst) const {
-          real_batch hi = kernel::complex_high(*this, A{});
-          real_batch lo = kernel::complex_low(*this, A{});
-          T * buffer = reinterpret_cast<T *>(dst);
-          lo.store_unaligned(buffer);
-          hi.store_unaligned(buffer + size);
-        }
+    return kernel::store_complex_unaligned(dst, *this, A{});
+}
 
 template<class T, class A>
 void batch<std::complex<T>, A>::store_aligned(T* real_dst, T* imag_dst) const {
