@@ -33,6 +33,15 @@ namespace xsimd
         simd_register(register_type reg) : simd_register<T, ISA_BASE>{reg} {}\
         simd_register() = default;\
     }
+
+        template <class T, class Arch>
+        struct get_bool_simd_register
+        {
+            using type = simd_register<T, Arch>;
+        };
+
+        template <class T, class Arch>
+        using get_bool_simd_register_t = typename get_bool_simd_register<T, Arch>::type;
     }
 
     namespace kernel

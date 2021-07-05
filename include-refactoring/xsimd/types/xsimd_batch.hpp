@@ -140,7 +140,7 @@ struct batch : types::simd_register<T, A> {
 };
 
 template<class T, class A=default_arch>
-struct batch_bool : types::simd_register<T, A> {
+struct batch_bool : types::get_bool_simd_register_t<T, A> {
   static constexpr std::size_t size = sizeof(types::simd_register<T, A>) / sizeof(T);
 
   using value_type = bool;
