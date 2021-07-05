@@ -165,6 +165,9 @@ namespace xsimd
                                                                     !std::is_signed<T>::value &&
                                                                     sizeof(T) == S, int>::type;
 
+            template <class T, size_t S>
+            using enable_sized_t = typename std::enable_if<sizeof(T) == S, int>::type;
+
             template <class T>
             using exclude_int64_arm7_t
                  = typename std::enable_if<std::is_integral<T>::value && sizeof(T) != 8 || std::is_same<T, float>::value, int>::type;
@@ -1438,7 +1441,81 @@ namespace xsimd
             return batch<T, A>(T(0));
         }
 
-        // Overloads accepting two batches of uint64/int64 are not available with ARMv7
+        // Overloads of bitwise shifts accepting two batches of uint64/int64 are not available with ARMv7
+
+        /*******
+         * all *
+         *******/
+
+        template <class T, class A, detail::enable_sized_t<T, 1> = 0>
+        bool all(batch_bool<T, A> const& arg, requires<arm7>)
+        {
+            uint8x8_t tmp = vand_u8(vget_low_u8(arg), vget_high_u8(arg));
+            tmp = vpmax_u8(tmp, tmp);
+            tmp = vpmax_u8(tmp, tmp);
+            tmp = vpmax_u8(tmp, tmp);
+            return vget_lane_u8(tmp, 0);
+        }
+
+        template <class T, class A, detail::enable_sized_t<T, 2> = 0>
+        bool all(batch_bool<T, A> const& arg, requires<arm7>)
+        {
+            uint16x4_t tmp = vand_u16(vget_low_u16(arg), vget_high_u16(arg));
+            tmp = vpmin_u16(tmp, tmp);
+            tmp = vpmin_u16(tmp, tmp);
+            return vget_lane_u16(tmp, 0) != 0;
+        }
+
+        template <class T, class A, detail::enable_sized_t<T, 4> = 0>
+        bool all(batch_bool<T, A> const& arg, requires<arm7>)
+        {
+            uint32x2_t tmp = vand_u32(vget_low_u32(arg), vget_high_u32(arg));
+            return vget_lane_u32(vpmin_u32(tmp, tmp), 0) != 0;
+        }
+
+        template <class T, class A, detail::enable_sized_t<T, 8> = 0>
+        bool all(batch_bool<T, A> const& arg, requires<arm7>)
+        {
+            uint64x1_t tmp = vand_u64(vget_low_u64(arg), vget_high_u64(arg));
+            return vget_lane_u64(tmp, 0) != 0;
+        }
+
+        /*******
+         * any *
+         *******/
+
+        template <class T, class A, detail::enable_sized_t<T, 1> = 0>
+        bool any(batch_bool<T, A> const& arg, requires<arm7>)
+        {
+            uint8x8_t tmp = vorr_u8(vget_low_u8(arg), vget_high_u8(arg));
+            tmp = vpmax_u8(tmp, tmp);
+            tmp = vpmax_u8(tmp, tmp);
+            tmp = vpmax_u8(tmp, tmp);
+            return vget_lane_u8(tmp, 0);
+        }
+
+        template <class T, class A, detail::enable_sized_t<T, 2> = 0>
+        bool any(batch_bool<T, A> const& arg, requires<arm7>)
+        {
+            uint16x4_t tmp = vorr_u16(vget_low_u16(arg), vget_high_u16(arg));
+            tmp = vpmax_u16(tmp, tmp);
+            tmp = vpmax_u16(tmp, tmp);
+            return vget_lane_u16(tmp, 0);
+        }
+
+        template <class T, class A, detail::enable_sized_t<T, 4> = 0>
+        bool any(batch_bool<T, A> const& arg, requires<arm7>)
+        {
+            uint32x2_t tmp = vorr_u32(vget_low_u32(arg), vget_high_u32(arg));
+            return vget_lane_u32(vpmax_u32(tmp, tmp), 0);
+        }
+
+        template <class T, class A, detail::enable_sized_t<T, 8> = 0>
+        bool any(batch_bool<T, A> const& arg, requires<arm7>)
+        {
+            uint64x1_t tmp = vorr_u64(vget_low_u64(arg), vget_high_u64(arg));
+            return bool(vget_lane_u64(tmp, 0));
+        }
     }
 }
 

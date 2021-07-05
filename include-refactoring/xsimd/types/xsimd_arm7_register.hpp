@@ -85,6 +85,22 @@ namespace xsimd
         XSIMD_DECLARE_SIMD_REGISTER(long long int, arm7, detail::arm_vector_type<long long int>);
         XSIMD_DECLARE_SIMD_REGISTER(unsigned long long int, arm7, detail::arm_vector_type<unsigned long long int>);
         XSIMD_DECLARE_SIMD_REGISTER(float, arm7, float32x4_t);
+
+        namespace detail
+        {
+            template <class T>
+            struct arm_bool_simd_register
+            {
+                using type = unsigned_arm_vector_type<T>;
+            };
+        }
+
+        template <class T>
+        struct get_bool_simd_register<T, arm7>
+            : detail::arm_bool_simd_register<T>
+        {
+        };
+        
     }
 #endif
 
