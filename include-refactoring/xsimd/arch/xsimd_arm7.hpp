@@ -1516,6 +1516,110 @@ namespace xsimd
             uint64x1_t tmp = vorr_u64(vget_low_u64(arg), vget_high_u64(arg));
             return bool(vget_lane_u64(tmp, 0));
         }
+
+        /****************
+         * bitwise_cast *
+         ****************/
+
+        namespace detail
+        {
+            template <class R, class... T>
+            struct bitwise_caster_impl
+            {
+                using container_type = std::tuple<R (*)(T)...>;
+                container_type m_func;
+
+                template <class U>
+                R run(U rhs) const
+                {
+                    using func_type = R (*)(U);
+                    auto func = xsimd::detail::get<func_type>(m_func);
+                    return func(rhs);
+                }
+            };
+
+            template <class R, class... T>
+            constexpr bitwise_caster_impl<R, T...> make_bitwise_caster_impl(R (*...arg)(T))
+            {
+                return {std::make_tuple(arg...)};
+            }
+
+            template <class... T>
+            struct type_list {};
+            
+            template <class RTL, class TTL>
+            struct bitwise_caster;
+
+            template <class... R, class... T>
+            struct bitwise_caster<type_list<R...>, type_list<T...>>
+            {
+                using container_type = std::tuple<bitwise_caster_impl<R, T...>...>;
+                container_type m_caster;
+
+                template <class V, class U>
+                V run(U rhs) const
+                {
+                    using caster_type = bitwise_caster<V, T...>;
+                    auto caster = xsimd::detail::get<caster_type>(m_caster);
+                    return caster.run(rhs);
+                }
+            };
+
+            template <class... T>
+            using bitwise_caster_t = bitwise_caster<type_list<T...>, type_list<T...>>;
+                    
+            using arm_bitwise_caster = bitwise_caster_t<uint8x16_t, int8x16_t,
+                                                        uint16x8_t, int16x8_t,
+                                                        uint32x4_t, int32x4_t,
+                                                        uint64x2_t, int64x2_t,
+                                                        float32x4_t>;
+
+            inline uint8x16_t identity_u8(uint8x16_t arg) { return arg; }
+            inline int8x16_t identity_s8(int8x16_t arg) { return arg; }
+            inline uint16x8_t identity_u16(uint16x8_t arg) { return arg; }
+            inline int16x8_t identity_s16(int16x8_t arg) { return arg; }
+            inline uint32x4_t identity_u32(uint32x4_t arg) { return arg; }
+            inline int32x4_t identity_s32(int32x4_t arg) { return arg; }
+            inline uint64x2_t identity_u64(uint64x2_t arg) { return arg; }
+            inline int64x2_t identity_s64(int64x2_t arg) { return arg; }
+            inline float32x4_t identity_f32(float32x4_t arg) { return arg; }
+        }
+
+        template <class T, class R, class A>
+        batch<R, A> bitwise_cast(batch<T, A> const& arg, batch<R, A> const&, requires<arm7>)
+        {
+            constexpr detail::arm_bitwise_caster caster = {
+                std::make_tuple(
+                detail::make_bitwise_caster_impl(detail::identity_u8,  vreinterpretq_u8_s8,  vreinterpretq_u8_u16, vreinterpretq_u8_s16,
+                                                 vreinterpretq_u8_u32, vreinterpretq_u8_s32, vreinterpretq_u8_u64, vreinterpretq_u8_s64,
+                                                 vreinterpretq_u8_f32),
+                detail::make_bitwise_caster_impl(vreinterpretq_s8_u8,   detail::identity_s8,  vreinterpretq_s8_u16, vreinterpretq_s8_s16,
+                                                 vreinterpretq_s8_u32, vreinterpretq_s8_s32, vreinterpretq_s8_u64, vreinterpretq_s8_s64,
+                                                 vreinterpretq_s8_f32),
+                detail::make_bitwise_caster_impl(vreinterpretq_u16_u8,  vreinterpretq_u16_s8,  detail::identity_u16,  vreinterpretq_u16_s16,
+                 vreinterpretq_u16_u32, vreinterpretq_u16_s32, vreinterpretq_u16_u64, vreinterpretq_u16_s64,
+                 vreinterpretq_u16_f32),
+                detail::make_bitwise_caster_impl(vreinterpretq_s16_u8,  vreinterpretq_s16_s8,  vreinterpretq_s16_u16, detail::identity_s16,
+                 vreinterpretq_s16_u32, vreinterpretq_s16_s32, vreinterpretq_s16_u64, vreinterpretq_s16_s64,
+                 vreinterpretq_s16_f32),
+                detail::make_bitwise_caster_impl(vreinterpretq_u32_u8,  vreinterpretq_u32_s8,  vreinterpretq_u32_u16, vreinterpretq_u32_s16,
+                 detail::identity_u32, vreinterpretq_u32_s32, vreinterpretq_u32_u64, vreinterpretq_u32_s64,
+                 vreinterpretq_u32_f32),
+                detail::make_bitwise_caster_impl(vreinterpretq_s32_u8,  vreinterpretq_s32_s8,  vreinterpretq_s32_u16, vreinterpretq_s32_s16,
+                 vreinterpretq_s32_u32, detail::identity_s32,  vreinterpretq_s32_u64, vreinterpretq_s32_s64,
+                 vreinterpretq_s32_f32),
+                detail::make_bitwise_caster_impl(vreinterpretq_u64_u8,  vreinterpretq_u64_s8,  vreinterpretq_u64_u16, vreinterpretq_u64_s16,
+                 vreinterpretq_u64_u32, vreinterpretq_u64_s32, detail::identity_u64,  vreinterpretq_u64_s64,
+                 vreinterpretq_u64_f32),
+                detail::make_bitwise_caster_impl(vreinterpretq_s64_u8,  vreinterpretq_s64_s8,  vreinterpretq_s64_u16, vreinterpretq_s64_s16,
+                 vreinterpretq_s64_u32, vreinterpretq_s64_s32, vreinterpretq_s64_u64, detail::identity_s64,
+                 vreinterpretq_s64_f32),
+                detail::make_bitwise_caster_impl(vreinterpretq_f32_u8,  vreinterpretq_f32_s8,  vreinterpretq_f32_u16, vreinterpretq_f32_s16,
+                 vreinterpretq_f32_u32, vreinterpretq_f32_s32, vreinterpretq_f32_u64, vreinterpretq_f32_s64,
+                 detail::identity_f32))
+            };
+            return caster.run<R>(arg);
+        }
     }
 }
 
