@@ -612,16 +612,6 @@ batch<T, A> bitwise_cast(batch_bool<T, A> const& self) {
   return {self.data};
 }
 
-template<class T, class A>
-bool all(batch_bool<T, A> const& self) {
-  return kernel::all<A>(bitwise_cast(self), A{});
-}
-
-template<class T, class A>
-bool any(batch_bool<T, A> const& self) {
-  return kernel::any<A>(bitwise_cast(self), A{});
-}
-
 }
 
 #endif

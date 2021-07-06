@@ -1597,28 +1597,64 @@ namespace xsimd
                                                  vreinterpretq_s8_u32, vreinterpretq_s8_s32, vreinterpretq_s8_u64, vreinterpretq_s8_s64,
                                                  vreinterpretq_s8_f32),
                 detail::make_bitwise_caster_impl(vreinterpretq_u16_u8,  vreinterpretq_u16_s8,  detail::identity_u16,  vreinterpretq_u16_s16,
-                 vreinterpretq_u16_u32, vreinterpretq_u16_s32, vreinterpretq_u16_u64, vreinterpretq_u16_s64,
-                 vreinterpretq_u16_f32),
+                                                 vreinterpretq_u16_u32, vreinterpretq_u16_s32, vreinterpretq_u16_u64, vreinterpretq_u16_s64,
+                                                 vreinterpretq_u16_f32),
                 detail::make_bitwise_caster_impl(vreinterpretq_s16_u8,  vreinterpretq_s16_s8,  vreinterpretq_s16_u16, detail::identity_s16,
-                 vreinterpretq_s16_u32, vreinterpretq_s16_s32, vreinterpretq_s16_u64, vreinterpretq_s16_s64,
-                 vreinterpretq_s16_f32),
+                                                 vreinterpretq_s16_u32, vreinterpretq_s16_s32, vreinterpretq_s16_u64, vreinterpretq_s16_s64,
+                                                 vreinterpretq_s16_f32),
                 detail::make_bitwise_caster_impl(vreinterpretq_u32_u8,  vreinterpretq_u32_s8,  vreinterpretq_u32_u16, vreinterpretq_u32_s16,
-                 detail::identity_u32, vreinterpretq_u32_s32, vreinterpretq_u32_u64, vreinterpretq_u32_s64,
-                 vreinterpretq_u32_f32),
+                                                 detail::identity_u32, vreinterpretq_u32_s32, vreinterpretq_u32_u64, vreinterpretq_u32_s64,
+                                                 vreinterpretq_u32_f32),
                 detail::make_bitwise_caster_impl(vreinterpretq_s32_u8,  vreinterpretq_s32_s8,  vreinterpretq_s32_u16, vreinterpretq_s32_s16,
-                 vreinterpretq_s32_u32, detail::identity_s32,  vreinterpretq_s32_u64, vreinterpretq_s32_s64,
-                 vreinterpretq_s32_f32),
+                                                 vreinterpretq_s32_u32, detail::identity_s32,  vreinterpretq_s32_u64, vreinterpretq_s32_s64,
+                                                 vreinterpretq_s32_f32),
                 detail::make_bitwise_caster_impl(vreinterpretq_u64_u8,  vreinterpretq_u64_s8,  vreinterpretq_u64_u16, vreinterpretq_u64_s16,
-                 vreinterpretq_u64_u32, vreinterpretq_u64_s32, detail::identity_u64,  vreinterpretq_u64_s64,
-                 vreinterpretq_u64_f32),
+                                                 vreinterpretq_u64_u32, vreinterpretq_u64_s32, detail::identity_u64,  vreinterpretq_u64_s64,
+                                                 vreinterpretq_u64_f32),
                 detail::make_bitwise_caster_impl(vreinterpretq_s64_u8,  vreinterpretq_s64_s8,  vreinterpretq_s64_u16, vreinterpretq_s64_s16,
-                 vreinterpretq_s64_u32, vreinterpretq_s64_s32, vreinterpretq_s64_u64, detail::identity_s64,
-                 vreinterpretq_s64_f32),
+                                                 vreinterpretq_s64_u32, vreinterpretq_s64_s32, vreinterpretq_s64_u64, detail::identity_s64,
+                                                 vreinterpretq_s64_f32),
                 detail::make_bitwise_caster_impl(vreinterpretq_f32_u8,  vreinterpretq_f32_s8,  vreinterpretq_f32_u16, vreinterpretq_f32_s16,
-                 vreinterpretq_f32_u32, vreinterpretq_f32_s32, vreinterpretq_f32_u64, vreinterpretq_f32_s64,
-                 detail::identity_f32))
+                                                 vreinterpretq_f32_u32, vreinterpretq_f32_s32, vreinterpretq_f32_u64, vreinterpretq_f32_s64,
+                                                 detail::identity_f32))
             };
             return caster.run<R>(arg);
+        }
+
+        /*************
+         * bool_cast *
+         *************/
+
+        template <class A>
+        batch_bool<float, A> bool_cast(batch_bool<int32_t, A> const& arg, requires<arm7>)
+        {
+            return arg;
+        }
+
+        template <class A>
+        batch_bool<int32_t, A> bool_cast(batch_bool<float, A> const& arg, requires<arm7>)
+        {
+            return arg;
+        }
+
+        /**********
+         * to_int *
+         **********/
+
+        template <class A>
+        batch<int32_t, A> to_int(const batch<float, A>& x)
+        {
+            return vcvtq_s32_f32(x);
+        }
+
+        /************
+         * to_float *
+         ************/
+
+        template <class A>
+        batch<float, A> to_float(const batch<int32_t, A>& x)
+        {
+            return vcvtq_f32_s32(x);
         }
     }
 }
