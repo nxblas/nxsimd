@@ -38,6 +38,7 @@ message(STATUS "xsimd v${${PROJECT_NAME}_VERSION}")
 if(XSIMD_REFACTORING)
 set(XSIMD_HEADERS
 ${XSIMD_INCLUDE_DIR}/xsimd/arch/xsimd_arm7.hpp
+${XSIMD_INCLUDE_DIR}/xsimd/arch/xsimd_arm8_64.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/arch/xsimd_constants.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/arch/xsimd_fma3.hpp
 ${XSIMD_INCLUDE_DIR}/xsimd/arch/xsimd_fma4.hpp

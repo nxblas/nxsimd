@@ -16,10 +16,17 @@ namespace xsimd
 
 #if XSIMD_WITH_ARM8_64
 
+#pragma message "COINCOIN REGISTER"
     namespace types
     {
         XSIMD_DECLARE_SIMD_REGISTER_ALIAS(arm8_64, arm8_32);
         XSIMD_DECLARE_SIMD_REGISTER(double, arm8_64, float64x2_t);
+
+        template <class T>
+        struct get_bool_simd_register<T, arm8_64>
+            : detail::arm_bool_simd_register<T>
+        {
+        };
     }
 
 #endif

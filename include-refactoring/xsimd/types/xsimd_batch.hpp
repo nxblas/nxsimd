@@ -144,7 +144,7 @@ struct batch_bool : types::get_bool_simd_register_t<T, A> {
   static constexpr std::size_t size = sizeof(types::simd_register<T, A>) / sizeof(T);
 
   using value_type = bool;
-  using register_type = typename types::simd_register<T, A>::register_type;
+  using register_type = types::get_bool_simd_register_t<T, A>;
   using batch_type = batch<T, A>;
 
   batch_bool() = default;
