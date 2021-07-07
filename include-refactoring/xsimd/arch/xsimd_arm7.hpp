@@ -251,13 +251,124 @@ namespace xsimd
          * load *
          ********/
 
-        // TODO
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 1> = 0>
+        batch<T, A> load_aligned(T const* src, convert<T>, requires<arm7>)
+        {
+            return vld1q_u8(src);
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 1> = 0>
+        batch<T, A> load_aligned(T const* src, convert<T>, requires<arm7>)
+        {
+            return vld1q_s8(src);
+        }
+
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 2> = 0>
+        batch<T, A> load_aligned(T const* src, convert<T>, requires<arm7>)
+        {
+            return vld1q_u16(src);
+        }
+        template <class T, class A, detail::enable_sized_signed_t<T, 2> = 0>
+        batch<T, A> load_aligned(T const* src, convert<T>, requires<arm7>)
+        {
+            return vld1q_s16(src);
+        }
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 4> = 0>
+        batch<T, A> load_aligned(T const* src, convert<T>, requires<arm7>)
+        {
+            return vld1q_u32(src);
+        }
+        template <class T, class A, detail::enable_sized_signed_t<T, 4> = 0>
+        batch<T, A> load_aligned(T const* src, convert<T>, requires<arm7>)
+        {
+            return vld1q_s32(src);
+        }
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 8> = 0>
+        batch<T, A> load_aligned(T const* src, convert<T>, requires<arm7>)
+        {
+            return vld1q_u64(src);
+        }
+        template <class T, class A, detail::enable_sized_signed_t<T, 8> = 0>
+        batch<T, A> load_aligned(T const* src, convert<T>, requires<arm7>)
+        {
+            return vld1q_s64(src);
+        }
+
+        template <class A>
+        batch<float, A> load_aligned(float const* src, convert<float>, requires<arm7>)
+        {
+            return vld1q_f32(src);
+        }
+
+        template <class T, class A>
+        batch<T, A> load_unaligned(T const* src, convert<T>, requires<arm7>)
+        {
+            return load_aligned(src, convert<T>(), A{});
+        }
 
         /*********
          * store *
          *********/
 
-        // TODO
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 1> = 0>
+        void store_aligned(T* dst, batch<T, A> const& src, requires<arm7>)
+        {
+            vst1q_u8(dst, src);
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 1> = 0>
+        void store_aligned(T* dst, batch<T, A> const& src, requires<arm7>)
+        {
+            vst1q_s8(dst, src);
+        }
+        
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 2> = 0>
+        void store_aligned(T* dst, batch<T, A> const& src, requires<arm7>)
+        {
+            vst1q_u16(dst, src);
+        }
+        
+        template <class T, class A, detail::enable_sized_signed_t<T, 2> = 0>
+        void store_aligned(T* dst, batch<T, A> const& src, requires<arm7>)
+        {
+            vst1q_s16(dst, src);
+        }
+        
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 4> = 0>
+        void store_aligned(T* dst, batch<T, A> const& src, requires<arm7>)
+        {
+            vst1q_u32(dst, src);
+        }
+        
+        template <class T, class A, detail::enable_sized_signed_t<T, 4> = 0>
+        void store_aligned(T* dst, batch<T, A> const& src, requires<arm7>)
+        {
+            vst1q_s32(dst, src);
+        }
+        
+        template <class T, class A, detail::enable_sized_unsigned_t<T, 8> = 0>
+        void store_aligned(T* dst, batch<T, A> const& src, requires<arm7>)
+        {
+            vst1q_u64(dst, src);
+        }
+
+        template <class T, class A, detail::enable_sized_signed_t<T, 8> = 0>
+        void store_aligned(T* dst, batch<T, A> const& src, requires<arm7>)
+        {
+            vst1q_s64(dst, src);
+        }
+
+        template <class A>
+        void store_aligned(float* dst, batch<float, A> const& src, requires<arm7>)
+        {
+            vst1q_f32(dst, src);
+        }
+
+        template <class T, class A>
+        void store_unaligned(T* dst, batch<T, A> const& src, requires<arm7>)
+        {
+            store_aligned(dst, src, A{});
+        }
 
         /****************
          * load_complex *
@@ -1655,6 +1766,19 @@ namespace xsimd
         batch<float, A> to_float(const batch<int32_t, A>& x)
         {
             return vcvtq_f32_s32(x);
+        }
+
+        /*************
+         * fast_cast *
+         *************/
+
+        namespace detail
+        {
+            template <class Tin, class Tout, class A>
+            batch<Tout, A> fast_cast(batch<Tin, A> const& in, batch<Tout, A> const& out, requires<arm7>)
+            {
+                return bitwise_cast(in, out, A{});
+            }
         }
     }
 }
