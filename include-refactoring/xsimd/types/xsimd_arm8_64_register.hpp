@@ -16,7 +16,6 @@ namespace xsimd
 
 #if XSIMD_WITH_ARM8_64
 
-#pragma message "COINCOIN REGISTER"
     namespace types
     {
         XSIMD_DECLARE_SIMD_REGISTER_ALIAS(arm8_64, arm8_32);

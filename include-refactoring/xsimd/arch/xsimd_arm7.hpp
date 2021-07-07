@@ -303,7 +303,7 @@ namespace xsimd
         template <class T, class A>
         batch<T, A> load_unaligned(T const* src, convert<T>, requires<arm7>)
         {
-            return load_aligned(src, convert<T>(), A{});
+            return load_aligned<A>(src, convert<T>(), A{});
         }
 
         /*********
@@ -367,7 +367,7 @@ namespace xsimd
         template <class T, class A>
         void store_unaligned(T* dst, batch<T, A> const& src, requires<arm7>)
         {
-            store_aligned(dst, src, A{});
+            store_aligned<A>(dst, src, A{});
         }
 
         /****************
