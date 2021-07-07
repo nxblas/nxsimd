@@ -452,7 +452,7 @@ namespace xsimd
         }
 
         template <class A>
-        batch<float, A> neg(batch<float, A> const& rhs)
+        batch<float, A> neg(batch<float, A> const& rhs, requires<arm7>)
         {
             return vnegq_f32(rhs);
         }
