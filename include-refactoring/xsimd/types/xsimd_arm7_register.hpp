@@ -88,10 +88,40 @@ namespace xsimd
 
         namespace detail
         {
+            template <size_t S>
+            struct get_unsigned_type;
+
+            template <>
+            struct get_unsigned_type<1>
+            {
+                using type = uint8_t;
+            };
+
+            template <>
+            struct get_unsigned_type<2>
+            {
+                using type = uint16_t;
+            };
+
+            template <>
+            struct get_unsigned_type<4>
+            {
+                using type = uint32_t;
+            };
+
+            template <>
+            struct get_unsigned_type<8>
+            {
+                using type  = uint64_t;
+            };
+
+            template <size_t S>
+            using get_unsigned_type_t = typename get_unsigned_type<S>::type;
+
             template <class T>
             struct arm_bool_simd_register
             {
-                using type = unsigned_arm_vector_type<T>;
+                using type = simd_register<get_unsigned_type_t<sizeof(T)>, arm7>;
             };
         }
 
