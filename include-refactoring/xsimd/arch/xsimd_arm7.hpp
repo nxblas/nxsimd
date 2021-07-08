@@ -166,6 +166,10 @@ namespace xsimd
                                                                     sizeof(T) == S, int>::type;
 
             template <class T, size_t S>
+            using enable_sized_integral_t = typename std::enable_if<std::is_integral<T>::value &&
+                                                                   sizeof(T) == S, int>::type;
+
+            template <class T, size_t S>
             using enable_sized_t = typename std::enable_if<sizeof(T) == S, int>::type;
 
             template <class T>
@@ -478,7 +482,7 @@ namespace xsimd
          * sadd *
          ********/
 
-        template <class A, class T, detail::enable_integral_t<T> = 0>
+        template <class A, class T, detail::enable_arm7_type_t<T> = 0>
         batch<T, A> sadd(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
@@ -512,7 +516,7 @@ namespace xsimd
          * ssub *
          ********/
 
-        template <class A, class T, detail::enable_integral_t<T> = 0>
+        template <class A, class T, detail::enable_arm7_type_t<T> = 0>
         batch<T, A> ssub(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
@@ -818,6 +822,12 @@ namespace xsimd
             return dispatcher.run(register_type(lhs), register_type(rhs));
         }
 
+        template <class A, class T, detail::enable_sized_integral_t<T, 8> = 0>
+        batch<T, A> min(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            return { std::min(lhs.get(0), rhs.get(0)), std::min(lhs.get(1), rhs.get(1)) };
+        }
+
         /*******
          * max *
          *******/
@@ -832,6 +842,12 @@ namespace xsimd
                                 vmaxq_u32, vmaxq_s32, vmaxq_f32)
             };
             return dispatcher.run(register_type(lhs), register_type(rhs));
+        }
+
+        template <class A, class T, detail::enable_sized_integral_t<T, 8> = 0>
+        batch<T, A> max(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        {
+            return { std::max(lhs.get(0), rhs.get(0)), std::max(lhs.get(1), rhs.get(1)) };
         }
 
         /*******

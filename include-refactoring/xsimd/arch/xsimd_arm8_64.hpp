@@ -76,7 +76,7 @@ namespace xsimd
         template <class A, class T,  detail::enable_sized_unsigned_t<T, 8> = 0>
         batch<T, A> neg(batch<T, A> const& rhs, requires<arm8_64>)
         {
-            return vnegq_u64(rhs);
+            return vreinterpretq_u64_s64(vnegq_s64(vreinterpretq_s64_u64(rhs)));
         }
 
         template <class A, class T,  detail::enable_sized_signed_t<T, 8> = 0>
@@ -373,7 +373,7 @@ namespace xsimd
         template <class A, class T,  detail::enable_sized_unsigned_t<T, 8> = 0>
         batch<T, A> abs(batch<T, A> const& rhs, requires<arm8_64>)
         {
-            return vabsq_u64(rhs);
+            return rhs;
         }
 
         template <class A, class T,  detail::enable_sized_signed_t<T, 8> = 0>
@@ -543,10 +543,10 @@ namespace xsimd
 
         namespace detail
         {
-            template <class... R>
+            template <class S, class... R>
             struct bitwise_caster_arm8
             {
-                using container_type = std::tuple<R (*)(float64x2_t)...>;
+                using container_type = std::tuple<R (*)(S)...>;
                 container_type m_func;
 
                 template <class V>
@@ -562,7 +562,8 @@ namespace xsimd
         template <class A, class R>
         batch<R, A> bitwise_cast(batch<double, A> const& arg, batch<R, A> const&, requires<arm8_64>)
         {
-            using caster_type = detail::bitwise_caster_arm8<uint8x16_t, int8x16_t,
+            using caster_type = detail::bitwise_caster_arm8<float64x2_t,
+                                                            uint8x16_t, int8x16_t,
                                                             uint16x8_t, int16x8_t,
                                                             uint32x4_t, int32x4_t,
                                                             uint64x2_t, int64x2_t,
@@ -575,6 +576,12 @@ namespace xsimd
             using src_register_type = typename batch<double, A>::register_type;
             using dst_register_type = typename batch<R, A>::register_type;
             return caster.run<dst_register_type>(src_register_type(arg));
+        }
+
+        template <class A>
+        batch<double, A> bitwise_cast(batch<double, A> const& arg, batch<double, A> const&, requires<arm8_64>)
+        {
+            return arg;
         }
 
         /*************

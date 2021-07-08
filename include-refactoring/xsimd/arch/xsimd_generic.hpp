@@ -181,6 +181,25 @@ namespace xsimd {
     }
 
     using namespace types;
+
+    // bitwise_cast
+    template <class A, class T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+    batch<T, A> bitwise_cast(batch_bool<T, A> const& arg, requires<generic>)
+    {
+        T z(0);
+        return select(arg, batch<T, A>(T(~z)), batch<T, A>(z));
+    }
+
+    template <class A, class T, typename std::enable_if<std::is_floating_point<T>::value, int>::type = 0>
+    batch<T, A> bitwise_cast(batch_bool<T, A> const& arg, requires<generic>)
+    {
+        T z0(0), z1(0);
+        using int_type = as_unsigned_integer_t<T>;
+        int_type value(~int_type(0));
+        std::memcpy(&z1, &value, sizeof(int_type));
+        return select(arg, batch<T, A>(z1), batch<T, A>(z0));
+    }
+
     // abs
     template<class A, class T, class/*=typename std::enable_if<std::is_integral<T>::value, void>::type*/>
     batch<T, A> abs(batch<T, A> const& self, requires<generic>)

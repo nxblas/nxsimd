@@ -609,7 +609,7 @@ batch<T, A> zip_lo(batch<T, A> const& self, batch<T, A> const& other) {
 //
 template<class T, class A>
 batch<T, A> bitwise_cast(batch_bool<T, A> const& self) {
-  return {self.data};
+  return kernel::bitwise_cast<A>(self, A{});
 }
 
 }
