@@ -144,12 +144,13 @@ struct batch_bool : types::get_bool_simd_register_t<T, A> {
   static constexpr std::size_t size = sizeof(types::simd_register<T, A>) / sizeof(T);
 
   using value_type = bool;
-  using register_type = types::get_bool_simd_register_t<T, A>;
+  using base_type = types::get_bool_simd_register_t<T, A>;
+  using register_type = typename base_type::register_type;
   using batch_type = batch<T, A>;
 
   batch_bool() = default;
   batch_bool(bool val);
-  batch_bool(register_type reg) : types::simd_register<T, A>({reg}) {}
+  batch_bool(register_type reg) : base_type{reg} {}
   batch_bool(std::initializer_list<bool> data) : batch_bool(data.begin(), detail::make_index_sequence<size>()) {}
 
   void store_aligned(bool * mem) const;
@@ -415,7 +416,7 @@ batch_bool<T, A> batch_bool<T, A>::operator|(batch_bool<T, A> const& other) cons
 }
 
 template<class T, class A>
-batch_bool<T, A>::batch_bool(bool val) : types::simd_register<T, A>(val?
+batch_bool<T, A>::batch_bool(bool val) : base_type(val?
     (batch_type(0) == batch_type(0)):
     (batch_type(0) != batch_type(0))) {
 }

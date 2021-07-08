@@ -23,7 +23,7 @@ namespace xsimd
 
         template <class T>
         struct get_bool_simd_register<T, arm8_64>
-            : detail::arm_bool_simd_register<T>
+            : detail::arm_bool_simd_register<T, arm8_64>
         {
         };
     }

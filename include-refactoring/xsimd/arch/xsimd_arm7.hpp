@@ -591,6 +591,18 @@ namespace xsimd
             return dispatcher.run(register_type(lhs), register_type(rhs));
         }
 
+        template <class A, class T, detail::exclude_int64_arm7_t<T> = 0>
+        batch_bool<T, A> eq(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires<arm7>)
+        {
+            using register_type = typename batch_bool<T, A>::register_type;
+            using dispatcher_type = detail::arm_comp_dispatcher_impl<uint8x16_t, uint16x8_t, uint32x4_t>::binary;
+            constexpr dispatcher_type dispatcher =
+            {
+                std::make_tuple(vceqq_u8, vceqq_u16, vceqq_u32)
+            };
+            return dispatcher.run(register_type(lhs), register_type(rhs));
+        }
+
         /******
          * lt *
          ******/
@@ -964,7 +976,7 @@ namespace xsimd
          *********/
 
         template <class A>
-        batch<float, A> haddp(const batch<float, A>* row)
+        batch<float, A> haddp(const batch<float, A>* row, requires<arm7>)
         {
             // row = (a,b,c,d)
             float32x2_t tmp1, tmp2, tmp3;
@@ -1013,7 +1025,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_arm7_type_t<T> = 0>
-        batch<T, A> select(batch_bool<T, A> const& cond, batch<T, A> const& a, batch<T, A> const& b)
+        batch<T, A> select(batch_bool<T, A> const& cond, batch<T, A> const& a, batch<T, A> const& b, requires<arm7>)
         {
             using bool_register_type = typename batch_bool<T, A>::register_type;
             using register_type = typename batch<T, A>::register_type;
@@ -1670,7 +1682,7 @@ namespace xsimd
                 template <class V, class U>
                 V run(U rhs) const
                 {
-                    using caster_type = bitwise_caster<V, T...>;
+                    using caster_type = bitwise_caster_impl<V, T...>;
                     auto caster = xsimd::detail::get<caster_type>(m_caster);
                     return caster.run(rhs);
                 }
@@ -1696,7 +1708,7 @@ namespace xsimd
             inline float32x4_t identity_f32(float32x4_t arg) { return arg; }
         }
 
-        template <class T, class R, class A>
+        template <class A, class T, class R>
         batch<R, A> bitwise_cast(batch<T, A> const& arg, batch<R, A> const&, requires<arm7>)
         {
             constexpr detail::arm_bitwise_caster caster = {
@@ -1729,7 +1741,9 @@ namespace xsimd
                                                  vreinterpretq_f32_u32, vreinterpretq_f32_s32, vreinterpretq_f32_u64, vreinterpretq_f32_s64,
                                                  detail::identity_f32))
             };
-            return caster.run<R>(arg);
+            using src_register_type = typename batch<T, A>::register_type;
+            using dst_register_type = typename batch<R, A>::register_type;
+            return caster.run<dst_register_type>(src_register_type(arg));
         }
 
         /*************
@@ -1753,7 +1767,7 @@ namespace xsimd
          **********/
 
         template <class A>
-        batch<int32_t, A> to_int(const batch<float, A>& x)
+        batch<int32_t, A> to_int(const batch<float, A>& x, requires<arm7>)
         {
             return vcvtq_s32_f32(x);
         }
@@ -1763,7 +1777,7 @@ namespace xsimd
          ************/
 
         template <class A>
-        batch<float, A> to_float(const batch<int32_t, A>& x)
+        batch<float, A> to_float(const batch<int32_t, A>& x, requires<arm7>)
         {
             return vcvtq_f32_s32(x);
         }
