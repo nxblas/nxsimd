@@ -20,6 +20,12 @@ namespace xsimd
             return vld1q_f64(src);
         }
 
+        template <class A>
+        batch<double, A> load_unaligned(double const* src, convert<double>, requires<arm8_64>)
+        {
+            return load_aligned<A>(src, convert<double>(), A{});
+        }
+
         /*********
          * store *
          *********/
@@ -28,6 +34,12 @@ namespace xsimd
         void store_aligned(double* dst, batch<double, A> const& src, requires<arm8_64>)
         {
             vst1q_f64(dst, src);
+        }
+
+        template <class A>
+        void store_unaligned(double* dst, batch<double, A> const& src, requires<arm8_64>)
+        {
+            return store_aligned<A>(dst, src, A{});
         }
 
         /*******
