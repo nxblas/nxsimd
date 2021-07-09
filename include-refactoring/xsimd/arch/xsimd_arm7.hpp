@@ -678,19 +678,32 @@ namespace xsimd
                 return vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(lhs),
                                                        vreinterpretq_u32_f32(rhs)));
             }
+
+            template <class V>
+            V bitwise_and_arm7(V const& lhs, V const& rhs)
+            {
+                constexpr arm_dispatcher::binary dispatcher =
+                {
+                    std::make_tuple(vandq_u8, vandq_s8, vandq_u16, vandq_s16,
+                                    vandq_u32, vandq_s32, vandq_u64, vandq_s64,
+                                    bitwise_and_f32)
+                };
+                return dispatcher.run(lhs, rhs);
+            }
         }
 
         template <class A, class T, detail::enable_arm7_type_t<T> = 0>
         batch<T, A> bitwise_and(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
-            constexpr detail::arm_dispatcher::binary dispatcher =
-            {
-                std::make_tuple(vandq_u8, vandq_s8, vandq_u16, vandq_s16,
-                                vandq_u32, vandq_s32, vandq_u64, vandq_s64,
-                                detail::bitwise_and_f32)
-            };
-            return dispatcher.run(register_type(lhs), register_type(rhs));
+            return detail::bitwise_and_arm7(register_type(lhs), register_type(rhs));
+        }
+
+        template <class A, class T, detail::enable_arm7_type_t<T> = 0>
+        batch_bool<T, A> bitwise_and(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires<arm7>)
+        {
+            using register_type = typename batch_bool<T, A>::register_type;
+            return detail::bitwise_and_arm7(register_type(lhs), register_type(rhs));
         }
 
         /**************
@@ -704,19 +717,32 @@ namespace xsimd
                 return vreinterpretq_f32_u32(vorrq_u32(vreinterpretq_u32_f32(lhs),
                                                        vreinterpretq_u32_f32(rhs)));
             }
+
+            template <class V>
+            V bitwise_or_arm7(V const& lhs, V const& rhs)
+            {
+                constexpr arm_dispatcher::binary dispatcher =
+                {
+                    std::make_tuple(vorrq_u8, vorrq_s8, vorrq_u16, vorrq_s16,
+                                    vorrq_u32, vorrq_s32, vorrq_u64, vorrq_s64,
+                                    bitwise_or_f32)
+                };
+                return dispatcher.run(lhs, rhs);
+            }
         }
 
         template <class A, class T, detail::enable_arm7_type_t<T> = 0>
         batch<T, A> bitwise_or(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
-            constexpr detail::arm_dispatcher::binary dispatcher =
-            {
-                std::make_tuple(vorrq_u8, vorrq_s8, vorrq_u16, vorrq_s16,
-                                vorrq_u32, vorrq_s32, vorrq_u64, vorrq_s64,
-                                detail::bitwise_or_f32)
-            };
-            return dispatcher.run(register_type(lhs), register_type(rhs));
+            return detail::bitwise_or_arm7(register_type(lhs), register_type(rhs));
+        }
+
+        template <class A, class T, detail::enable_arm7_type_t<T> = 0>
+        batch_bool<T, A> bitwise_or(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires<arm7>)
+        {
+            using register_type = typename batch_bool<T, A>::register_type;
+            return detail::bitwise_or_arm7(register_type(lhs), register_type(rhs));
         }
 
         /***************
@@ -730,19 +756,32 @@ namespace xsimd
                 return vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(lhs),
                                                        vreinterpretq_u32_f32(rhs)));
             }
+
+            template <class V>
+            V bitwise_xor_arm7(V const& lhs, V const& rhs)
+            {
+                constexpr arm_dispatcher::binary dispatcher =
+                {
+                    std::make_tuple(veorq_u8, veorq_s8, veorq_u16, veorq_s16,
+                                    veorq_u32, veorq_s32, veorq_u64, veorq_s64,
+                                    bitwise_xor_f32)
+                };
+                return dispatcher.run(lhs, rhs);
+            }
         }
 
         template <class A, class T, detail::enable_arm7_type_t<T> = 0>
         batch<T, A> bitwise_xor(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
-            constexpr detail::arm_dispatcher::binary dispatcher =
-            {
-                std::make_tuple(veorq_u8, veorq_s8, veorq_u16, veorq_s16,
-                                veorq_u32, veorq_s32, veorq_u64, veorq_s64,
-                                detail::bitwise_xor_f32)
-            };
-            return dispatcher.run(register_type(lhs), register_type(rhs));
+            return detail::bitwise_xor_arm7(register_type(lhs), register_type(rhs));
+        }
+
+        template <class A, class T, detail::enable_arm7_type_t<T> = 0>
+        batch_bool<T, A> bitwise_xor(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires<arm7>)
+        {
+            using register_type = typename batch_bool<T, A>::register_type;
+            return detail::bitwise_xor_arm7(register_type(lhs), register_type(rhs));
         }
 
         /***************
@@ -765,20 +804,33 @@ namespace xsimd
             {
                 return vreinterpretq_f32_u32(vmvnq_u32(vreinterpretq_u32_f32(arg)));
             }
+
+            template <class V>
+            V bitwise_not_arm7(V const& arg)
+            {
+                constexpr arm_dispatcher::unary dispatcher =
+                {
+                    std::make_tuple(vmvnq_u8, vmvnq_s8, vmvnq_u16, vmvnq_s16,
+                                    vmvnq_u32, vmvnq_s32,
+                                    bitwise_not_u64, bitwise_not_s64,
+                                    bitwise_not_f32)
+                };
+                return dispatcher.run(arg);
+            }
         }
 
         template <class A, class T, detail::enable_arm7_type_t<T> = 0>
         batch<T, A> bitwise_not(batch<T, A> const& arg, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
-            constexpr detail::arm_dispatcher::unary dispatcher =
-            {
-                std::make_tuple(vmvnq_u8, vmvnq_s8, vmvnq_u16, vmvnq_s16,
-                                vmvnq_u32, vmvnq_s32,
-                                detail::bitwise_not_u64, detail::bitwise_not_s64,
-                                detail::bitwise_not_f32)
-            };
-            return dispatcher.run(register_type(arg));
+            return detail::bitwise_not_arm7(register_type(arg));
+        }
+
+        template <class A, class T, detail::enable_arm7_type_t<T> = 0>
+        batch_bool<T, A> bitwise_not(batch_bool<T, A> const& arg, requires<arm7>)
+        {
+            using register_type = typename batch_bool<T, A>::register_type;
+            return detail::bitwise_not_arm7(register_type(arg));
         }
 
         /******************
@@ -791,19 +843,32 @@ namespace xsimd
             {
                 return vreinterpretq_f32_u32(vbicq_u32(vreinterpretq_u32_f32(lhs), vreinterpretq_u32_f32(rhs)));
             }
+
+            template <class V>
+            V bitwise_andnot_arm7(V const& lhs, V const& rhs)
+            {
+                constexpr detail::arm_dispatcher::binary dispatcher =
+                {
+                    std::make_tuple(vbicq_u8, vbicq_s8, vbicq_u16, vbicq_s16,
+                                    vbicq_u32, vbicq_s32, vbicq_u64, vbicq_s64,
+                                    bitwise_andnot_f32)
+                };
+                return dispatcher.run(lhs, rhs);
+            }
         }
 
         template <class A, class T, detail::enable_arm7_type_t<T> = 0>
         batch<T, A> bitwise_andnot(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
         {
             using register_type = typename batch<T, A>::register_type;
-            constexpr detail::arm_dispatcher::binary dispatcher =
-            {
-                std::make_tuple(vbicq_u8, vbicq_s8, vbicq_u16, vbicq_s16,
-                                vbicq_u32, vbicq_s32, vbicq_u64, vbicq_s64,
-                                detail::bitwise_andnot_f32)
-            };
-            return dispatcher.run(register_type(lhs), register_type(rhs));
+            return detail::bitwise_andnot_arm7(register_type(lhs), register_type(rhs));
+        }
+
+        template <class A, class T, detail::enable_arm7_type_t<T> = 0>
+        batch_bool<T, A> bitwise_andnot(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires<arm7>)
+        {
+            using register_type = typename batch_bool<T, A>::register_type;
+            return detail::bitwise_andnot_arm7(register_type(lhs), register_type(rhs));
         }
 
         /*******

@@ -2579,6 +2579,10 @@ namespace xsimd {
       return !(other == self);
     }
 
+    template <class A, class T> batch_bool<T, A> neq(batch_bool<T, A> const& self, batch_bool<T, A> const& other, requires<generic>) {
+        return !(other == self);
+    }
+
     // nextafter
     namespace detail
     {

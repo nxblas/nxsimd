@@ -303,6 +303,12 @@ namespace xsimd
                                                    vreinterpretq_u64_f64(rhs)));
         }
 
+        template <class A>
+        batch_bool<double, A> bitwise_and(batch_bool<double, A> const& lhs, batch_bool<double, A> const& rhs, requires<arm8_64>)
+        {
+            return vandq_u64(lhs, rhs);
+        }
+
         /**************
          * bitwise_or *
          **************/
@@ -312,6 +318,12 @@ namespace xsimd
         {
             return vreinterpretq_f64_u64(vorrq_u64(vreinterpretq_u64_f64(lhs),
                                                    vreinterpretq_u64_f64(rhs)));
+        }
+
+        template <class A>
+        batch_bool<double, A> bitwise_or(batch_bool<double, A> const& lhs, batch_bool<double, A> const& rhs, requires<arm8_64>)
+        {
+            return vorrq_u64(lhs, rhs);
         }
 
         /***************
@@ -325,6 +337,12 @@ namespace xsimd
                                                    vreinterpretq_u64_f64(rhs)));
         }
 
+        template <class A>
+        batch_bool<double, A> bitwise_xor(batch_bool<double, A> const& lhs, batch_bool<double, A> const& rhs, requires<arm8_64>)
+        {
+            return veorq_u64(lhs, rhs);
+        }
+
         /***************
          * bitwise_not *
          ***************/
@@ -333,6 +351,12 @@ namespace xsimd
         batch<double, A> bitwise_not(batch<double, A> const& rhs, requires<arm8_64>)
         {
             return vreinterpretq_f64_u32(vmvnq_u32(vreinterpretq_u32_f64(rhs)));
+        }
+
+        template <class A>
+        batch_bool<double, A> bitwise_not(batch_bool<double, A> const& rhs, requires<arm8_64>)
+        {
+            return detail::bitwise_not_u64(rhs);
         }
 
         /******************
@@ -346,6 +370,12 @@ namespace xsimd
                                                    vreinterpretq_u64_f64(rhs)));
         }
         
+        template <class A>
+        batch_bool<double, A> bitwise_andnot(batch_bool<double, A> const& lhs, batch_bool<double, A> const& rhs, requires<arm8_64>)
+        {
+            return vbicq_u64(lhs, rhs);
+        }
+
         /*******
          * min *
          *******/
