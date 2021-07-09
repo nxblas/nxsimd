@@ -420,6 +420,42 @@ namespace xsimd
          * hadd *
          ********/
 
+        template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
+        typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm8_64>)
+        {
+            return vaddvq_u8(arg);
+        }
+
+        template <class A, class T, detail::enable_sized_signed_t<T, 1> = 0>
+        typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm8_64>)
+        {
+            return vaddvq_s8(arg);
+        }
+
+        template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
+        typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm8_64>)
+        {
+            return vaddvq_u16(arg);
+        }
+
+        template <class A, class T, detail::enable_sized_signed_t<T, 2> = 0>
+        typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm8_64>)
+        {
+            return vaddvq_s16(arg);
+        }
+
+        template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
+        typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm8_64>)
+        {
+            return vaddvq_u32(arg);
+        }
+
+        template <class A, class T, detail::enable_sized_signed_t<T, 4> = 0>
+        typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm8_64>)
+        {
+            return vaddvq_s32(arg);
+        }
+
         template <class A, class T, detail::enable_sized_unsigned_t<T, 8> = 0>
         typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm8_64>)
         {

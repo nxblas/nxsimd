@@ -923,8 +923,8 @@ namespace xsimd
 
         namespace detail
         {
-            template <class A, class T>
-            T sum_batch(batch<T, A> const& arg)
+            template <class T, class A, class V>
+            T sum_batch(V const& arg)
             {
                 T res = T(0);
                 for (std::size_t i = 0; i < batch<T, A>::size; ++i)
@@ -936,31 +936,31 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        T hadd(batch<T, A> const& arg, requires<arm7>)
+        typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm7>)
         {
             uint8x8_t tmp = vpadd_u8(vget_low_u8(arg), vget_high_u8(arg));
-            return detail::sum_batch(batch<T, A>(tmp));
+            return detail::sum_batch<T, A>(tmp);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 1> = 0>
-        T hadd(batch<T, A> const& arg, requires<arm7>)
+        typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm7>)
         {
             int8x8_t tmp = vpadd_s8(vget_low_s8(arg), vget_high_s8(arg));
-            return detail::sum_batch(batch<T, A>(tmp));
+            return detail::sum_batch<T, A>(tmp);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
         typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm7>)
         {
             uint16x4_t tmp = vpadd_u16(vget_low_u16(arg), vget_high_u16(arg));
-            return detail::sum_batch(batch<T, A>(tmp));
+            return detail::sum_batch<T, A>(tmp);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 2> = 0>
         typename batch<T, A>::value_type hadd(batch<T, A> const& arg, requires<arm7>)
         {
             int16x4_t tmp = vpadd_s16(vget_low_s16(arg), vget_high_s16(arg));
-            return detail::sum_batch(batch<T, A>(tmp));
+            return detail::sum_batch<T, A>(tmp);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
