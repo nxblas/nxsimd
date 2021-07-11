@@ -37,6 +37,15 @@ namespace xsimd
             return float64x2_t{d0, d1};
         }
 
+        template <class A>
+        batch_bool<double, A> set(batch_bool<double, A> const&, requires<arm8_64>, bool b0, bool b1)
+        {
+            using register_type = typename batch_bool<double, A>::register_type;
+            using unsigned_type = as_unsigned_integer_t<double>;
+            return register_type{static_cast<unsigned_type>(b0 ? -1LL : 0LL),
+                                 static_cast<unsigned_type>(b1 ? -1LL : 0LL)};
+        }
+
         /********
          * load *
          ********/

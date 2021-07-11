@@ -245,10 +245,26 @@ namespace xsimd
             return xsimd::types::detail::arm_vector_type<T>{args...};
         }
 
+        template <class A, class T, class... Args, detail::enable_integral_t<T> = 0>
+        batch_bool<T, A> set(batch_bool<T, A> const&, requires<arm7>, Args... args)
+        {
+            using register_type = typename batch_bool<T, A>::register_type;
+            using unsigned_type = as_unsigned_integer_t<T>;
+            return register_type{static_cast<unsigned_type>(args ? -1LL : 0LL)...};
+        }
+
         template <class A>
-        batch<float, A> set(batch<float, A> const &, requires<arm7>, float f0, float f1, float f2, float f3)
+        batch<float, A> set(batch<float, A> const&, requires<arm7>, float f0, float f1, float f2, float f3)
         {
             return float32x4_t{f0, f1, f2, f3};
+        }
+
+        template <class A, class... Args>
+        batch_bool<float, A> set(batch_bool<float, A> const&, requires<arm7>, Args... args)
+        {
+            using register_type = typename batch_bool<float, A>::register_type;
+            using unsigned_type = as_unsigned_integer_t<float>;
+            return register_type{static_cast<unsigned_type>(args ? -1LL : 0LL)...};
         }
 
         /********
