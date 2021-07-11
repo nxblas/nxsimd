@@ -89,6 +89,18 @@ namespace xsimd
     template <class T>
     using as_unsigned_integer_t = typename as_unsigned_integer<T>::type;
 
+    /*********************
+     * as_signed_integer *
+     *********************/
+
+    template <class T>
+    struct as_signed_integer : std::make_signed<T>
+    {
+    };
+
+    template <class T>
+    using as_signed_integer_t = typename as_signed_integer<T>::type;
+
     /******************
      * flip_sign_type *
      ******************/

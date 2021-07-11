@@ -78,6 +78,47 @@ namespace xsimd
             return store_aligned<A>(dst, src, A{});
         }
 
+        /****************
+         * load_complex *
+         ****************/
+
+        template <class A>
+        batch<std::complex<double>, A> load_complex_aligned(std::complex<double> const* mem, requires<arm8_64>)
+        {
+            using real_batch = batch<double, A>;
+            const double* buf = reinterpret_cast<const double*>(mem);
+            float64x2x2_t tmp = vld2q_f64(buf);
+            real_batch real = tmp.val[0],
+                       imag = tmp.val[1];
+            return batch<std::complex<double>, A>{real, imag};
+        }
+
+        template <class A>
+        batch<std::complex<double>, A> load_complex_unaligned(std::complex<double> const* mem, requires<arm8_64>)
+        {
+            return load_complex_aligned<A>(mem, A{});
+        }
+
+        /*****************
+         * store_complex *
+         *****************/
+
+        template <class A>
+        void store_complex_aligned(std::complex<double>* dst, batch<std::complex<double> ,A> const& src, requires<arm8_64>)
+        {
+            float64x2x2_t tmp;
+            tmp.val[0] = src.real();
+            tmp.val[1] = src.imag();
+            double* buf = reinterpret_cast<double*>(dst);
+            vst2q_f64(buf, tmp);
+        }
+
+        template <class A>
+        void store_complex_unaligned(std::complex<double>* dst, batch<std::complex<double>, A> const& src, requires<arm8_64>)
+        {
+            store_complex_aligned(dst, src, A{});
+        }
+
         /*******
          * neg *
          *******/
@@ -520,7 +561,7 @@ namespace xsimd
         template <class A>
         batch<double, A> haddp(const batch<double, A>* row, requires<arm8_64>)
         {
-            return vpaddq_f64(row[0](), row[1]());
+            return vpaddq_f64(row[0], row[1]);
         }
 
         /**********
@@ -592,6 +633,22 @@ namespace xsimd
                 default: break;
             }
             return batch_type(double(0));
+        }
+
+        /******************
+         * bitwise_rshift *
+         ******************/
+        
+        template <class A, class T, detail::enable_sized_unsigned_t<T, 8> = 0>
+        batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, requires<arm8_64>)
+        {
+            return bitwise_rshift<A>(lhs, n, arm7{}); 
+        }
+
+        template <class A, class T, detail::enable_sized_unsigned_t<T, 8> = 0>
+        batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires<arm8_64>)
+        {
+            return vshlq_u64(lhs, vnegq_s64(rhs));
         }
 
         /****************

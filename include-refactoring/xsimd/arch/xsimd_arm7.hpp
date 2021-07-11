@@ -1078,15 +1078,15 @@ namespace xsimd
             // row = (a,b,c,d)
             float32x2_t tmp1, tmp2, tmp3;
             // tmp1 = (a0 + a2, a1 + a3)
-            tmp1 = vpadd_f32(vget_low_f32(row[0]()), vget_high_f32(row[0]()));
+            tmp1 = vpadd_f32(vget_low_f32(row[0]), vget_high_f32(row[0]));
             // tmp2 = (b0 + b2, b1 + b3)
-            tmp2 = vpadd_f32(vget_low_f32(row[1]()), vget_high_f32(row[1]()));
+            tmp2 = vpadd_f32(vget_low_f32(row[1]), vget_high_f32(row[1]));
             // tmp1 = (a0..3, b0..3)
             tmp1 = vpadd_f32(tmp1, tmp2);
             // tmp2 = (c0 + c2, c1 + c3)
-            tmp2 = vpadd_f32(vget_low_f32(row[2]()), vget_high_f32(row[2]()));
+            tmp2 = vpadd_f32(vget_low_f32(row[2]), vget_high_f32(row[2]));
             // tmp3 = (d0 + d2, d1 + d3)
-            tmp3 = vpadd_f32(vget_low_f32(row[3]()), vget_high_f32(row[3]()));
+            tmp3 = vpadd_f32(vget_low_f32(row[3]), vget_high_f32(row[3]));
             // tmp1 = (c0..3, d0..3)
             tmp2 = vpadd_f32(tmp2, tmp3);
             // return = (a0..3, b0..3, c0..3, d0..3)
@@ -1394,7 +1394,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires<arm7>)
         {
             return vshlq_u8(lhs, rhs);
         }
@@ -1430,7 +1430,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
-        batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires<arm7>)
         {
             return vshlq_u16(lhs, rhs);
         }
@@ -1466,7 +1466,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires<arm7>)
         {
             return vshlq_u32(lhs, rhs);
         }
@@ -1502,7 +1502,7 @@ namespace xsimd
         }
         
         template <class A, class T, detail::enable_sized_unsigned_t<T, 8> = 0>
-        batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires<arm7>)
         {
             return vshlq_u64(lhs, rhs);
         }
@@ -1542,7 +1542,7 @@ namespace xsimd
         }
         
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires<arm7>)
         {
             return vshlq_u8(lhs, vnegq_s8(rhs));
         }
@@ -1578,7 +1578,7 @@ namespace xsimd
         }
         
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
-        batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires<arm7>)
         {
             return vshlq_u16(lhs, vnegq_s16(rhs));
         }
@@ -1614,7 +1614,7 @@ namespace xsimd
         }
         
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires<arm7>)
+        batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires<arm7>)
         {
             return vshlq_u32(lhs, vnegq_s32(rhs));
         }
