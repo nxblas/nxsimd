@@ -24,7 +24,13 @@ namespace detail
         static void test_isinf()
         {
             T input(1.);
-            EXPECT_FALSE(xsimd::any(xsimd::isinf(input))) << print_function_name("isfinite");
+            std::cout << "before isinf" << std::endl;
+            auto tmp = xsimd::isinf(input);
+            std::cout << "before any" << std::endl;
+            bool res = xsimd::any(tmp);
+            std::cout << "after any" << std::endl;
+            EXPECT_FALSE(res) << print_function_name("isfinite");
+            //EXPECT_FALSE(xsimd::any(xsimd::isinf(input))) << print_function_name("isfinite");
         }
     };
 
@@ -77,6 +83,7 @@ protected:
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return std::fmod(l, r); });
+            std::cout << "Before fmod" << std::endl;
             batch_type res = xsimd::fmod(batch_lhs(), batch_rhs());
             EXPECT_BATCH_EQ(res, expected) << print_function_name("fmod");
         }
@@ -85,6 +92,7 @@ protected:
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return std::remainder(l, r); });
+            std::cout << "Before remainder" << std::endl;
             batch_type res = xsimd::remainder(batch_lhs(), batch_rhs());
             EXPECT_BATCH_EQ(res, expected) << print_function_name("remainder");
         }
@@ -93,6 +101,7 @@ protected:
             array_type expected;
             std::transform(lhs.cbegin(), lhs.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return std::fdim(l, r); });
+            std::cout << "Before fdim" << std::endl;
             batch_type res = xsimd::fdim(batch_lhs(), batch_rhs());
             EXPECT_BATCH_EQ(res, expected) << print_function_name("fdim");
         }
@@ -105,15 +114,18 @@ protected:
                            [clip_lo, clip_hi](const value_type& l) {
                                return l < clip_lo ? clip_lo : clip_hi < l ? clip_hi : l;
                            });
+            std::cout << "before clpi" << std::endl;
             batch_type res = xsimd::clip(batch_clip_input(), batch_type(clip_lo), batch_type(clip_hi));
             EXPECT_BATCH_EQ(res, expected) << print_function_name("clip");
         }
         // isfinite
         {
+            std::cout << "before isfinite" << std::endl;
             detail::infinity_tester<batch_type>::test_isfinite();
         }
         // isinf
         {
+            std::cout << "before isinf" << std::endl;
             detail::infinity_tester<batch_type>::test_isinf();
         }
         // nextafter
@@ -121,6 +133,7 @@ protected:
             array_type expected;
             std::transform(from_input.cbegin(), from_input.cend(), rhs.cbegin(), expected.begin(),
                             [](const value_type& l, const value_type& r) { return std::nextafter(l, r); });
+            std::cout << "before nextafter" << std::endl;
             batch_type res = xsimd::nextafter(batch_from_input(), batch_rhs());
             EXPECT_BATCH_EQ(res, expected) << print_function_name("nextafter");
         }
