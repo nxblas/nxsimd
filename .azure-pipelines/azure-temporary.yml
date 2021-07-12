@@ -2,33 +2,11 @@ jobs:
   - job: 'Linux_1'
     strategy:
       matrix:
-        gcc_4:
-          gcc_version: '4.9'
-          refactoring: 1
-        gcc_5:
-          gcc_version: '5'
-          refactoring: 1
-        gcc_6_force_no_instr_set:
-          gcc_version: '6'
-          force_no_instr_set: 1
-        gcc_6_enable_xtl_complex:
-          gcc_version: '6'
-          enable_xtl_complex: 1
-        gcc_7_avx512:
-          gcc_version: '7'
-          avx512: 1
         gcc_4_aarch64:
           cross_compile: 1
           gcc_version: '4.9'
           arm_arch_dir: 'aarch64-linux-gnu'
           arm_arch_target: 'armv8-a'
-          refactoring: 1
-        gcc_8_enable_fallback:
-          gcc_version: '8'
-          enable_xtl_complex: 1
-          enable_fallback: 1
-        gcc_9:
-          gcc_version: '9'
           refactoring: 1
     pool:
       vmImage: ubuntu-16.04

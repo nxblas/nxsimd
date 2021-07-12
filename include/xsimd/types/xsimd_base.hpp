@@ -289,6 +289,9 @@ namespace xsimd
     batch_type_t<X> zip_hi(const simd_base<X>& lhs, const simd_base<X>& rhs);
 
     template <class X>
+    batch_type_t<X> extract_pair(const simd_base<X>& lhs, const simd_base<X>& rhs, const int n);
+
+    template <class X>
     typename simd_batch_traits<X>::batch_bool_type
     isnan(const simd_base<X>& x);
 
@@ -1920,6 +1923,24 @@ namespace xsimd
         using value_type = typename simd_batch_traits<X>::value_type;
         using kernel = detail::batch_kernel<value_type, simd_batch_traits<X>::size>;
         return kernel::zip_hi(lhs(), rhs());
+    }
+
+    /**
+     * Extract vector from pair of vectors
+     * extracts the lowest vector elements from the second source \c rhs
+     * and the highest vector elements from the first source \c lhs
+     * The index: 'n' specifies the lowest vector element to extract from the first source register.
+     * Concatenates the results into th Return value.
+     * @param lhs a batch of integer or floating point or double precision values.
+     * @param rhs a batch of integer or floating point or double precision values.
+     * @return.
+     */
+    template <class X>
+    inline batch_type_t<X> extract_pair(const simd_base<X>& lhs, const simd_base<X>& rhs, const int index)
+    {
+        using value_type = typename simd_batch_traits<X>::value_type;
+        using kernel = detail::batch_kernel<value_type, simd_batch_traits<X>::size>;
+        return kernel::extract_pair(lhs(), rhs(), index);
     }
 
     /**

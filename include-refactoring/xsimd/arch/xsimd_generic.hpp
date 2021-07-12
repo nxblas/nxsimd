@@ -116,17 +116,24 @@ namespace xsimd {
       // to use scalar or vector conversion when doing load / store / batch_cast
       struct with_fast_conversion{};
       struct with_slow_conversion{};
-        template<class A, class From, class To>
-        class has_fast_conversion {
-          template<class T0, class T1>
-          static std::true_type get(decltype(kernel::conversion::fast(batch<T0, A>{}, batch<T1, A>{}, A{}))*);
-          template<class T0, class T1>
-          static std::false_type get(...);
-          public:
-          static constexpr bool value = decltype(get<From, To>(nullptr))::value;
-        };
-        template<class A, class From, class To>
-        using conversion_type = typename std::conditional<has_fast_conversion<A, From, To>::value, with_fast_conversion, with_slow_conversion>::type;
+
+      template <class A, class From, class To, class = void>
+      struct conversion_type_impl
+      {
+          using type = with_slow_conversion;
+      };
+
+      using xsimd::detail::void_t;
+
+      template <class A, class From, class To>
+      struct conversion_type_impl<A, From, To,
+                void_t<decltype(fast_cast(std::declval<const From&>(), std::declval<const To&>(), std::declval<const A&>()))>>
+      {
+          using type = with_fast_conversion;
+      };
+
+      template <class A, class From, class To>
+      using conversion_type = typename conversion_type_impl<A, From, To>::type;
     }
 
     namespace detail {
@@ -174,6 +181,25 @@ namespace xsimd {
     }
 
     using namespace types;
+
+    // bitwise_cast
+    template <class A, class T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+    batch<T, A> bitwise_cast(batch_bool<T, A> const& arg, requires<generic>)
+    {
+        T z(0);
+        return select(arg, batch<T, A>(T(~z)), batch<T, A>(z));
+    }
+
+    template <class A, class T, typename std::enable_if<std::is_floating_point<T>::value, int>::type = 0>
+    batch<T, A> bitwise_cast(batch_bool<T, A> const& arg, requires<generic>)
+    {
+        T z0(0), z1(0);
+        using int_type = as_unsigned_integer_t<T>;
+        int_type value(~int_type(0));
+        std::memcpy(&z1, &value, sizeof(int_type));
+        return select(arg, batch<T, A>(z1), batch<T, A>(z0));
+    }
+
     // abs
     template<class A, class T, class/*=typename std::enable_if<std::is_integral<T>::value, void>::type*/>
     batch<T, A> abs(batch<T, A> const& self, requires<generic>)
@@ -502,7 +528,7 @@ namespace xsimd {
     namespace detail {
     template<class A, class T_out, class T_in>
     batch<T_out, A> batch_cast(batch<T_in, A> const& self, batch<T_out, A> const& out, requires<generic>, with_fast_conversion) {
-      return conversion::fast<A>(self, out, A{});
+      return fast_cast(self, out, A{});
     }
     template<class A, class T_out, class T_in>
     batch<T_out, A> batch_cast(batch<T_in, A> const& self, batch<T_out, A> const&, requires<generic>, with_slow_conversion) {
@@ -2093,7 +2119,7 @@ namespace xsimd {
       batch<T_out, A> load_aligned(T_in const* mem, convert<T_out>, requires<generic>, with_fast_conversion) {
         using batch_type_in = batch<T_in, A>;
         using batch_type_out = batch<T_out, A>;
-        return conversion::fast(batch_type_in::load_aligned(mem), batch_type_out(), A{});
+        return fast_cast(batch_type_in::load_aligned(mem), batch_type_out(), A{});
       }
       template<class A, class T_in, class T_out>
       batch<T_out, A> load_aligned(T_in const* mem, convert<T_out>, requires<generic>, with_slow_conversion) {
@@ -2115,7 +2141,7 @@ namespace xsimd {
       batch<T_out, A> load_unaligned(T_in const* mem, convert<T_out>, requires<generic>, with_fast_conversion) {
         using batch_type_in = batch<T_in, A>;
         using batch_type_out = batch<T_out, A>;
-        return conversion::fast(batch_type_in::load_unaligned(mem), batch_type_out(), A{});
+        return fast_cast(batch_type_in::load_unaligned(mem), batch_type_out(), A{});
       }
 
       template<class A, class T_in, class T_out>
@@ -2551,6 +2577,10 @@ namespace xsimd {
     // neq
     template<class A, class T> batch_bool<T, A> neq(batch<T, A> const& self, batch<T, A> const& other, requires<generic>) {
       return !(other == self);
+    }
+
+    template <class A, class T> batch_bool<T, A> neq(batch_bool<T, A> const& self, batch_bool<T, A> const& other, requires<generic>) {
+        return !(other == self);
     }
 
     // nextafter

@@ -54,12 +54,14 @@ namespace xsimd {
     }
   };
 
+  struct unavailable {};
+
   namespace detail {
     // Pick the best architecture in arch_list L, which is the last
     // because architectures are sorted by version.
     template <class L> struct best;
 
-    //template <> struct best<arch_list<>> { using type = unavailable; };
+    template <> struct best<arch_list<>> { using type = unavailable; };
 
     template <class Arch, class... Archs> struct best<arch_list<Arch, Archs...>> {
       using type = Arch;
@@ -91,15 +93,19 @@ namespace xsimd {
         : join<typename Arch::template extend<Archs...>, Args...> {};
   } // namespace detail
 
-  using all_x86_architectures = arch_list<avx512f, fma5, avx2, /*xop, fma4,*/ avx, fma3, sse4_2, sse4_1, /*sse4a,*/ ssse3, sse3, sse2, sse>;
-  //using all_arm_architectures = arch_list<neon64, neon>;
-  using all_architectures = typename detail::join</*all_arm_architectures,*/ all_x86_architectures>::type;
+  struct unsupported {};
+  using all_x86_architectures = arch_list<avx512f, avx2, /*fma3, xop, fma4,*/ avx, sse4_2, sse4_1, /*sse4a, ssse3,*/ sse3, sse2, sse>;
+  using all_arm_architectures = arch_list<arm8_64, arm8_32, arm7>;
+  using all_architectures = typename detail::join<all_arm_architectures, all_x86_architectures>::type;
 
   using supported_architectures = typename detail::supported<all_architectures>::type;
 
   using x86_arch = typename detail::best<typename detail::supported<all_x86_architectures>::type>::type;
-  //using arm_arch = typename detail::best<typename detail::supported<all_arm_architectures>::type>::type;
-  using default_arch = typename detail::best<typename detail::supported<arch_list</*arm_arch,*/ x86_arch>>::type>::type;
+  using arm_arch = typename detail::best<typename detail::supported<all_arm_architectures>::type>::type;
+  //using default_arch = typename detail::best<typename detail::supported<arch_list</*arm_arch,*/ x86_arch>>::type>::type;
+  using default_arch = typename std::conditional<std::is_same<x86_arch, unavailable>::value,
+                                                 arm_arch,
+                                                 x86_arch>::type;
 
 
     namespace detail

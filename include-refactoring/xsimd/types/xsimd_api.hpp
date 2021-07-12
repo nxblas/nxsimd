@@ -27,12 +27,12 @@ auto add(T const& self, Tp const& other) -> decltype(self + other){
 }
 
 template<class T, class A>
-bool all(batch<T, A> const& self) {
+bool all(batch_bool<T, A> const& self) {
   return kernel::all<A>(self, A{});
 }
 
 template<class T, class A>
-bool any(batch<T, A> const& self) {
+bool any(batch_bool<T, A> const& self) {
   return kernel::any<A>(self, A{});
 }
 
@@ -609,17 +609,7 @@ batch<T, A> zip_lo(batch<T, A> const& self, batch<T, A> const& other) {
 //
 template<class T, class A>
 batch<T, A> bitwise_cast(batch_bool<T, A> const& self) {
-  return {self.data};
-}
-
-template<class T, class A>
-bool all(batch_bool<T, A> const& self) {
-  return kernel::all<A>(bitwise_cast(self), A{});
-}
-
-template<class T, class A>
-bool any(batch_bool<T, A> const& self) {
-  return kernel::any<A>(bitwise_cast(self), A{});
+  return kernel::bitwise_cast<A>(self, A{});
 }
 
 }

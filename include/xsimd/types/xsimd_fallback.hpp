@@ -962,6 +962,21 @@ namespace xsimd
                 }
                 return b_hi;
             }
+
+            /* 0 <= n <= N/2 */
+            static batch_type extract_pair(const batch_type& lhs, const batch_type& rhs, const int n)
+            {
+                batch_type b_concatenate;
+                for (int i = 0 ; i < static_cast<int>(N - n); ++i)
+                {
+                    b_concatenate[i] = lhs[i + n];
+                    if(i < n)
+                    {
+                        b_concatenate[N - 1 - i] = rhs[n - 1 - i];
+                    }
+                }
+                return b_concatenate;
+            }
         };
     }
 

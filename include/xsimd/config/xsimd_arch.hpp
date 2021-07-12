@@ -309,7 +309,7 @@ namespace xsimd
 #else
             static constexpr bool supported = false;
 #endif
-            static constexpr bool available() { return supported; }
+            static constexpr bool available() { return true; }
 
             template<class T>
             using batch = xsimd::batch<T, 1>;

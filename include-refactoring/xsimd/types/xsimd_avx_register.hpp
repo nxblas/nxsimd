@@ -39,5 +39,3 @@ namespace xsimd {
 }
 #endif
 #endif
-
-

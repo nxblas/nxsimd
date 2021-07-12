@@ -3,9 +3,6 @@
 
 #include "../types/xsimd_sse2_register.hpp"
 
-#include <emmintrin.h>
-
-
 namespace xsimd {
 
   namespace kernel {
@@ -30,20 +27,20 @@ namespace xsimd {
     }
 
     // all
-    template<class A> bool all(batch<double, A> const& self, requires<sse2>) {
+    template<class A> bool all(batch_bool<double, A> const& self, requires<sse2>) {
       return _mm_movemask_pd(self) == 0x03;
     }
     template<class A, class T, class=typename std::enable_if<std::is_integral<T>::value, void>::type>
-    bool all(batch<T, A> const& self, requires<sse2>) {
+    bool all(batch_bool<T, A> const& self, requires<sse2>) {
       return _mm_movemask_epi8(self) == 0xFFFF;
     }
 
     // any
-    template<class A> bool any(batch<double, A> const& self, requires<sse2>) {
+    template<class A> bool any(batch_bool<double, A> const& self, requires<sse2>) {
       return _mm_movemask_pd(self) != 0;
     }
     template<class A, class T, class=typename std::enable_if<std::is_integral<T>::value, void>::type>
-    bool any(batch<T, A> const& self, requires<sse2>) {
+    bool any(batch_bool<T, A> const& self, requires<sse2>) {
       return _mm_movemask_epi8(self) != 0;
     }
 
@@ -150,12 +147,12 @@ namespace xsimd {
     }
 
     // convert
-    namespace conversion {
-    template<class A> batch<float, A> fast(batch<int32_t, A> const& self, batch<float, A> const&, requires<sse2>) {
+    namespace detail {
+    template<class A> batch<float, A> fast_cast(batch<int32_t, A> const& self, batch<float, A> const&, requires<sse2>) {
       return _mm_cvtepi32_ps(self);
     }
-    template<class A> batch<int32_t, A> fast(batch<float, A> const& self, batch<int32_t, A> const&, requires<sse2>) {
-      return _mm_cvtps_epi32(self);
+    template<class A> batch<int32_t, A> fast_cast(batch<float, A> const& self, batch<int32_t, A> const&, requires<sse2>) {
+      return _mm_cvttps_epi32(self);
     }
     }
 

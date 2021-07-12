@@ -3,9 +3,6 @@
 
 #include "../types/xsimd_sse3_register.hpp"
 
-#include <pmmintrin.h>
-
-
 namespace xsimd {
 
   namespace kernel {

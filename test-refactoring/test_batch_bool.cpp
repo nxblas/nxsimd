@@ -155,7 +155,7 @@ protected:
     void test_load_store() const
     {
         bool_array_type res;
-        batch_bool_type b(batch_type::load_unaligned(ba.data()));
+        batch_bool_type b(batch_bool_type::load_unaligned(ba.data()));
         b.store_unaligned(res.data());
         EXPECT_EQ(res, ba) << print_function_name("load_unaligned / store_unaligned");
 

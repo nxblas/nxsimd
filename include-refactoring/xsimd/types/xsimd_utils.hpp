@@ -89,6 +89,18 @@ namespace xsimd
     template <class T>
     using as_unsigned_integer_t = typename as_unsigned_integer<T>::type;
 
+    /*********************
+     * as_signed_integer *
+     *********************/
+
+    template <class T>
+    struct as_signed_integer : std::make_signed<T>
+    {
+    };
+
+    template <class T>
+    using as_signed_integer_t = typename as_signed_integer<T>::type;
+
     /******************
      * flip_sign_type *
      ******************/
@@ -230,6 +242,48 @@ namespace xsimd
         #endif
     }
 
+    /***********************************
+     * Backport of std::get from C++14 *
+     ***********************************/
+
+    namespace detail
+    {
+        template <class T, class... Types, size_t I, size_t... Is>
+        const T& get_impl(const std::tuple<Types...>& t, std::is_same<T, T>, index_sequence<I, Is...>)
+        {
+            return std::get<I>(t);
+        }
+
+        template <class T, class U, class... Types, size_t I, size_t... Is>
+        const T& get_impl(const std::tuple<Types...>& t, std::is_same<T, U>, index_sequence<I, Is...>)
+        {
+            using tuple_elem = typename std::tuple_element<I+1, std::tuple<Types...>>::type;
+            return get_impl<T>(t, std::is_same<T, tuple_elem>(), index_sequence<Is...>());
+        }
+
+        template <class T, class... Types>
+        const T& get(const std::tuple<Types...>& t)
+        {
+            using tuple_elem = typename std::tuple_element<0, std::tuple<Types...>>::type;
+            return get_impl<T>(t, std::is_same<T, tuple_elem>(), make_index_sequence<sizeof...(Types)>());
+        }
+    }
+
+    /*********************************
+     * Backport of void_t from C++17 *
+     *********************************/
+
+    namespace detail
+    {
+        template <class... T>
+        struct make_void
+        {
+            using type = void;
+        };
+
+        template <class... T>
+        using void_t = typename make_void<T...>::type;
+    }
 
     /*****************************************
      * Supplementary std::array constructors *
@@ -240,7 +294,8 @@ namespace xsimd
         // std::array constructor from scalar value ("broadcast")
         template <typename T, std::size_t... Is>
         constexpr std::array<T, sizeof...(Is)>
-        array_from_scalar_impl(const T& scalar, index_sequence<Is...>) {
+        array_from_scalar_impl(const T& scalar, index_sequence<Is...>)
+        {
             // You can safely ignore this silly ternary, the "scalar" is all
             // that matters. The rest is just a dirty workaround...
             return std::array<T, sizeof...(Is)>{ (Is+1) ? scalar : T() ... };
@@ -248,20 +303,23 @@ namespace xsimd
 
         template <typename T, std::size_t N>
         constexpr std::array<T, N>
-        array_from_scalar(const T& scalar) {
+        array_from_scalar(const T& scalar)
+        {
             return array_from_scalar_impl(scalar, make_index_sequence<N>());
         }
 
         // std::array constructor from C-style pointer (handled as an array)
         template <typename T, std::size_t... Is>
         constexpr std::array<T, sizeof...(Is)>
-        array_from_pointer_impl(const T* c_array, index_sequence<Is...>) {
+        array_from_pointer_impl(const T* c_array, index_sequence<Is...>)
+        {
             return std::array<T, sizeof...(Is)>{ c_array[Is]... };
         }
 
         template <typename T, std::size_t N>
         constexpr std::array<T, N>
-        array_from_pointer(const T* c_array) {
+        array_from_pointer(const T* c_array)
+        {
             return array_from_pointer_impl(c_array, make_index_sequence<N>());
         }
     }
@@ -323,7 +381,127 @@ namespace xsimd
 #endif
     }
 
+    /*****************
+     * REPEAT macros *
+     *****************/
 
+/* For Shift instruction: vshlq_n_u8/vshrq_n_u8 (lhs, n),
+ * 'n' must be a constant and is the compile-time literal constant.
+ *
+ * This Macro is to fix compiling issues from llvm(clang):
+ * "argument must be a constant..."
+ *
+ */
+#define EXPAND(...) __VA_ARGS__
+#define CASE_LHS(op, i)                  \
+    case i: return op(lhs, i);
+
+#define XSIMD_REPEAT_8_0(op, addx)       \
+    CASE_LHS(EXPAND(op), 1 + addx);      \
+    CASE_LHS(EXPAND(op), 2 + addx);      \
+    CASE_LHS(EXPAND(op), 3 + addx);      \
+    CASE_LHS(EXPAND(op), 4 + addx);      \
+    CASE_LHS(EXPAND(op), 5 + addx);      \
+    CASE_LHS(EXPAND(op), 6 + addx);      \
+    CASE_LHS(EXPAND(op), 7 + addx);
+
+#define XSIMD_REPEAT_8_N(op, addx)       \
+    CASE_LHS(EXPAND(op), 0 + addx);      \
+    XSIMD_REPEAT_8_0(op, addx);
+
+#define XSIMD_REPEAT_8(op)               \
+    XSIMD_REPEAT_8_0(op, 0);
+
+#define XSIMD_REPEAT_16_0(op, addx)      \
+    XSIMD_REPEAT_8_0(op, 0 + addx);      \
+    XSIMD_REPEAT_8_N(op, 8 + addx);
+
+#define XSIMD_REPEAT_16_N(op, addx)      \
+    XSIMD_REPEAT_8_N(op, 0 + addx);      \
+    XSIMD_REPEAT_8_N(op, 8 + addx);
+
+#define XSIMD_REPEAT_16(op)              \
+    XSIMD_REPEAT_16_0(op, 0);
+
+#define XSIMD_REPEAT_32_0(op, addx)      \
+    XSIMD_REPEAT_16_0(op, 0 + addx);     \
+    XSIMD_REPEAT_16_N(op, 16 + addx);
+
+#define XSIMD_REPEAT_32_N(op, addx)      \
+    XSIMD_REPEAT_16_N(op, 0 + addx);     \
+    XSIMD_REPEAT_16_N(op, 16 + addx);
+
+#define XSIMD_REPEAT_32(op)              \
+    XSIMD_REPEAT_32_0(op, 0);
+
+#define XSIMD_REPEAT_64(op)              \
+    XSIMD_REPEAT_32_0(op, 0);            \
+    XSIMD_REPEAT_32_N(op, 32);
+
+/* The Macro is for vext (lhs, rhs, n)
+ *
+ * _mm_alignr_epi8, _mm_alignr_epi32 ...
+ */
+#define CASE_LHS_RHS(op, i)              \
+    case i: return op(lhs, rhs, i);
+
+#define XSIMD_REPEAT_2_0(op, addx)       \
+    CASE_LHS_RHS(EXPAND(op), 1 + addx);
+
+#define XSIMD_REPEAT_2_N(op, addx)       \
+    CASE_LHS_RHS(EXPAND(op), 0 + addx);  \
+    XSIMD_REPEAT_2_0(op, addx);
+
+#define XSIMD_REPEAT_2(op)               \
+    XSIMD_REPEAT_2_0(op, 0);
+
+#define XSIMD_REPEAT_4_0(op, addx)       \
+    XSIMD_REPEAT_2_0(op, 0 + addx);      \
+    XSIMD_REPEAT_2_N(op, 2 + addx);
+
+#define XSIMD_REPEAT_4_N(op, addx)       \
+    XSIMD_REPEAT_2_N(op, 0 + addx);      \
+    XSIMD_REPEAT_2_N(op, 2 + addx);
+
+#define XSIMD_REPEAT_4(op)               \
+    XSIMD_REPEAT_4_0(op, 0);
+
+#define XSIMD_REPEAT_8_0_v2(op, addx)    \
+    XSIMD_REPEAT_4_0(op, 0 + addx);      \
+    XSIMD_REPEAT_4_N(op, 4 + addx);
+
+#define XSIMD_REPEAT_8_N_v2(op, addx)    \
+    XSIMD_REPEAT_4_N(op, 0 + addx);      \
+    XSIMD_REPEAT_4_N(op, 4 + addx);
+
+#define XSIMD_REPEAT_8_v2(op)            \
+    XSIMD_REPEAT_8_0_v2(op, 0);
+
+#define XSIMD_REPEAT_16_0_v2(op, addx)   \
+    XSIMD_REPEAT_8_0_v2(op, 0 + addx);   \
+    XSIMD_REPEAT_8_N_v2(op, 8 + addx);
+
+#define XSIMD_REPEAT_16_N_v2(op, addx)   \
+    XSIMD_REPEAT_8_N_v2(op, 0 + addx);   \
+    XSIMD_REPEAT_8_N_v2(op, 8 + addx);
+
+#define XSIMD_REPEAT_16_v2(op)           \
+    XSIMD_REPEAT_16_0_v2(op, 0);
+
+#define XSIMD_REPEAT_32_0_v2(op, addx)   \
+    XSIMD_REPEAT_16_0_v2(op, 0 + addx);  \
+    XSIMD_REPEAT_16_N_v2(op, 16 + addx);
+
+#define XSIMD_REPEAT_32_N_v2(op, addx)   \
+    XSIMD_REPEAT_16_N_v2(op, 0 + addx);  \
+    XSIMD_REPEAT_16_N_v2(op, 16 + addx);
+
+#define XSIMD_REPEAT_32_v2(op)           \
+    XSIMD_REPEAT_32_0_v2(op, 0);
+
+#define XSIMD_REPEAT_64_v2(op)           \
+    XSIMD_REPEAT_32_0_v2(op, 0);         \
+    XSIMD_REPEAT_32_N_v2(op, 32);
 }
 
 #endif

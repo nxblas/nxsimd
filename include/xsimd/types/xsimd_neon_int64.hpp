@@ -467,6 +467,18 @@ namespace xsimd
                 return vcombine_s64(vget_high_s64(lhs), vget_high_s64(rhs));
 #endif
             }
+
+            static batch_type extract_pair(const batch_type& lhs, const batch_type& rhs, const int n)
+            {
+                switch(n)
+                {
+                    case 0: return lhs;
+                    XSIMD_REPEAT_2(vextq_s64);
+                    default: break;
+                }
+                return batch_type(int64_t(0));
+            }
+
         };
     }
 
