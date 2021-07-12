@@ -574,6 +574,14 @@ namespace xsimd
             return vbslq_f64(cond, a, b);
         }
 
+        template <class A, bool... b>
+        batch<double, A> select(batch_bool_constant<batch<double, A>, b...> const&,
+                                batch<double, A> const& true_br,
+                                batch<double, A> const& false_br,
+                                requires<arm8_64>)
+        {
+            return select(batch_bool<double, A>{b...}, true_br, false_br, arm8_64{});
+        }
         /**********
          * zip_lo *
          **********/

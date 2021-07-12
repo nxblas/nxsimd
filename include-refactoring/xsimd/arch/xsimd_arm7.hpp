@@ -1135,6 +1135,12 @@ namespace xsimd
             return dispatcher.run(bool_register_type(cond), register_type(a), register_type(b));
         }
 
+        template <class A, class T, bool... b, detail::enable_arm7_type_t<T> = 0>
+        batch<T, A> select(batch_bool_constant<batch<T, A>, b...> const&, batch<T, A> const& true_br, batch<T, A> const& false_br, requires<arm7>)
+        {
+            return select(batch_bool<T, A>{b...}, true_br, false_br, arm7{});
+        }
+
         /**********
          * zip_lo *
          **********/
@@ -1194,7 +1200,7 @@ namespace xsimd
         }
 
         template <class A>
-        batch<float, A> zip_lo(batch<float, A> const& lhs, batch<float, A> const& rhs)
+        batch<float, A> zip_lo(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
         {
             float32x2x2_t tmp = vzip_f32(vget_low_f32(lhs), vget_low_f32(rhs));
             return vcombine_f32(tmp.val[0], tmp.val[1]);
@@ -1259,7 +1265,7 @@ namespace xsimd
         }
 
         template <class A>
-        batch<float, A> zip_hi(batch<float, A> const& lhs, batch<float, A> const& rhs)
+        batch<float, A> zip_hi(batch<float, A> const& lhs, batch<float, A> const& rhs, requires<arm7>)
         {
             float32x2x2_t tmp = vzip_f32(vget_high_f32(lhs), vget_high_f32(rhs));
             return vcombine_f32(tmp.val[0], tmp.val[1]);
