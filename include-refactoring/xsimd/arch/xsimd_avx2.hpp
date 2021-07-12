@@ -182,7 +182,7 @@ namespace xsimd {
             return {real, imag};
     }
     template<class A> batch<std::complex<double>, A> load_complex(batch<double,A> const& hi, batch<double,A> const& lo, requires<avx2>) {
-            using batch_type = batch<double>;
+            using batch_type = batch<double, A>;
             batch_type real = _mm256_permute4x64_pd(_mm256_unpacklo_pd(hi, lo), _MM_SHUFFLE(3, 1, 2, 0));
             batch_type imag = _mm256_permute4x64_pd(_mm256_unpackhi_pd(hi, lo), _MM_SHUFFLE(3, 1, 2, 0));
             return {real, imag};

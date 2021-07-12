@@ -65,26 +65,26 @@ namespace xsimd {
     }
 
     // all
-    template<class A> bool all(batch<float, A> const& self, requires<avx>) {
+    template<class A> bool all(batch_bool<float, A> const& self, requires<avx>) {
       return _mm256_testc_ps(self, batch_bool<float, A>(true)) != 0;
     }
-    template<class A> bool all(batch<double, A> const& self, requires<avx>) {
+    template<class A> bool all(batch_bool<double, A> const& self, requires<avx>) {
       return _mm256_testc_pd(self, batch_bool<double, A>(true)) != 0;
     }
     template<class A, class T, class=typename std::enable_if<std::is_integral<T>::value, void>::type>
-    bool all(batch<T, A> const& self, requires<avx>) {
+    bool all(batch_bool<T, A> const& self, requires<avx>) {
                 return _mm256_testc_si256(self, batch_bool<T, A>(true)) != 0;
     }
 
     // any
-    template<class A> bool any(batch<float, A> const& self, requires<avx>) {
+    template<class A> bool any(batch_bool<float, A> const& self, requires<avx>) {
       return !_mm256_testz_ps(self, self);
     }
-    template<class A> bool any(batch<double, A> const& self, requires<avx>) {
+    template<class A> bool any(batch_bool<double, A> const& self, requires<avx>) {
       return !_mm256_testz_pd(self, self);
     }
     template<class A, class T, class=typename std::enable_if<std::is_integral<T>::value, void>::type>
-    bool any(batch<T, A> const& self, requires<avx>) {
+    bool any(batch_bool<T, A> const& self, requires<avx>) {
                 return !_mm256_testz_si256(self, self);
     }
 
@@ -551,7 +551,7 @@ namespace xsimd {
             return {real, imag};
     }
     template<class A> batch<std::complex<double>, A> load_complex(batch<double,A> const& hi, batch<double,A> const& lo, requires<avx>) {
-            using batch_type = batch<double>;
+            using batch_type = batch<double, A>;
             __m128d tmp0 = _mm256_extractf128_pd(hi, 0);
             __m128d tmp1 = _mm256_extractf128_pd(hi, 1);
             batch_type real, imag;

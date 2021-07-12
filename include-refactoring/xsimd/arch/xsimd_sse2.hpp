@@ -30,23 +30,22 @@ namespace xsimd {
     }
 
     // all
-    template<class A> bool all(batch<double, A> const& self, requires<sse2>) {
+    template<class A> bool all(batch_bool<double, A> const& self, requires<sse2>) {
       return _mm_movemask_pd(self) == 0x03;
     }
     template<class A, class T, class=typename std::enable_if<std::is_integral<T>::value, void>::type>
-    bool all(batch<T, A> const& self, requires<sse2>) {
+    bool all(batch_bool<T, A> const& self, requires<sse2>) {
       return _mm_movemask_epi8(self) == 0xFFFF;
     }
 
     // any
-    template<class A> bool any(batch<double, A> const& self, requires<sse2>) {
+    template<class A> bool any(batch_bool<double, A> const& self, requires<sse2>) {
       return _mm_movemask_pd(self) != 0;
     }
     template<class A, class T, class=typename std::enable_if<std::is_integral<T>::value, void>::type>
-    bool any(batch<T, A> const& self, requires<sse2>) {
+    bool any(batch_bool<T, A> const& self, requires<sse2>) {
       return _mm_movemask_epi8(self) != 0;
     }
-
 
     // bitwise_and
     template<class A, class T, class=typename std::enable_if<std::is_integral<T>::value, void>::type>

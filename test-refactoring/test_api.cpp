@@ -61,6 +61,7 @@ protected:
 
     void test_load()
     {
+#if 0
         test_load_impl(i8_vec, "load int8_t");
         test_load_impl(ui8_vec, "load uint8_t");
         test_load_impl(i16_vec, "load int16_t");
@@ -71,10 +72,12 @@ protected:
         test_load_impl(ui64_vec, "load uint64_t");
         test_load_impl(f_vec, "load float");
         test_load_impl(d_vec, "load double");
+#endif
     }
 
     void test_store()
     {
+#if 0
         test_store_impl(i8_vec, "load int8_t");
         test_store_impl(ui8_vec, "load uint8_t");
         test_store_impl(i16_vec, "load int16_t");
@@ -85,11 +88,12 @@ protected:
         test_store_impl(ui64_vec, "load uint64_t");
         test_store_impl(f_vec, "load float");
         test_store_impl(d_vec, "load double");
- 
+#endif
     }
 
     void test_set()
     {
+#if 0
         test_set_impl<int8_t>("set int8_t");
         test_set_impl<uint8_t>("set uint8_t");
         test_set_impl<int16_t>("set int16_t");
@@ -100,6 +104,7 @@ protected:
         test_set_impl<uint64_t>("set uint64_t");
         test_set_impl<float>("set float");
         test_set_impl<double>("set double");
+#endif
     }
 
 private:
