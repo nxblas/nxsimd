@@ -1850,13 +1850,15 @@ namespace xsimd
         template <class A>
         batch_bool<float, A> bool_cast(batch_bool<int32_t, A> const& arg, requires<arm7>)
         {
-            return arg;
+            using register_type = typename batch_bool<int32_t, A>::register_type;
+            return register_type(arg);
         }
 
         template <class A>
         batch_bool<int32_t, A> bool_cast(batch_bool<float, A> const& arg, requires<arm7>)
         {
-            return arg;
+            using register_type = typename batch_bool<float, A>::register_type;
+            return register_type(arg);
         }
 
         /**********
@@ -1890,6 +1892,16 @@ namespace xsimd
             {
                 return bitwise_cast(in, out, A{});
             }
+        }
+
+        /*********
+         * isnan *
+         *********/
+
+        template <class A>
+        batch_bool<float, A> isnan(batch<float, A> const& arg, requires<arm7>)
+        {
+            return !(arg == arg);
         }
     }
 }
